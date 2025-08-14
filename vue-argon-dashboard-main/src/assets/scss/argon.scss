@@ -1,0 +1,9 @@
+
+// src/assets/scss/argon.scss
+
+// Sobrescribe el color success (verde) por azul antes de importar Bootstrap
+$success: #007bff; // Azul Bootstrap
+
+@import "~bootstrap/scss/bootstrap";
+
+// ...resto de tu código SCSS...
