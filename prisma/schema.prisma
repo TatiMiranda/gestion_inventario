@@ -1,15 +1,107 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+datasource db {
+  provider = "mysql"
+  url      = env("http://localhost:8080/phpmyadmin/index.php?route=/database/sql&db=gestion_inventario")
+}
 
 generator client {
   provider = "prisma-client-js"
-  output   = "../generated/prisma"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "mysql"
   url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Categoria {
+  id_categoria   Int       @id @default(autoincrement())
+  nombre         String
+  descripcion    String?
+  estado         Float
+  fecha_creacion DateTime  @default(now())
+  fecha_modificacion DateTime @default(now()) @updatedAt
+
+  equipos        Equipo[]
+}
+
+model Equipo {
+  id_equipo      Int        @id @default(autoincrement())
+  nombre         String
+  descripcion    String?
+  codigoProducto String     @unique
+  id_categoria   Int?
+  categoria      Categoria? @relation(fields: [id_categoria], references: [id_categoria])
+
+  stock          Stock[]
+  seguimiento    Seguimiento[]
+  centroCostos   CentroCostos[]
+}
+
+model Sede {
+  id_sede   String  @id
+  nombre    String
+  direccion String?
+
+  stock              Stock[]
+  seguimientoOrigen  Seguimiento[] @relation("Origen")
+  seguimientoDestino Seguimiento[] @relation("Destino")
+  centroCostos       CentroCostos[]
+}
+
+model Stock {
+  id_stock  Int    @id @default(autoincrement())
+  id_equipo Int
+  cantidad  Int
+  id_sede   String
+
+  equipo Equipo @relation(fields: [id_equipo], references: [id_equipo])
+  sede   Sede   @relation(fields: [id_sede], references: [id_sede])
+}
+
+model Seguimiento {
+  id             Int      @id @default(autoincrement())
+  id_equipo      Int
+  cantidad       Int
+  tipo_movimiento String
+  id_sede_origen Int?
+  id_sede_destino Int?
+
+  // Relaciones
+  equipo        Equipos   @relation(fields: [id_equipo], references: [id])
+  sede_origen   Sedes?    @relation("SeguimientoOrigen", fields: [id_sede_origen], references: [id_sede])
+  sede_destino  Sedes?    @relation("SeguimientoDestino", fields: [id_sede_destino], references: [id_sede])
+}
+
+model Proveedor {
+  id        Int     @id @default(autoincrement())
+  nombre    String
+  telefono  String?
+  direccion String?
+}
+
+model Usuario {
+  id_usuario    Int      @id @default(autoincrement())
+  nombre        String
+  apellido      String
+  email         String   @unique
+  telefono      String?
+  direccion     String?
+  contrasena    String
+  rol           String
+  fecha_creacion DateTime @default(now())
+}
+
+model CentroCostos {
+  id_centroCostos Int @id @default(autoincrement())
+  nombre          String
+  id_sede         String?
+  id_equipo       Int?
+  id_seguimiento  Int?
+
+  sede        Sede?        @relation(fields: [id_sede], references: [id_sede])
+  equipo      Equipo?      @relation(fields: [id_equipo], references: [id_equipo])
+  seguimiento Seguimiento? @relation(fields: [id_seguimiento], references: [id_movimiento])
 }

@@ -1,95 +1,80 @@
--- Crear la base de datos con el conjunto de caracteres y la colación correctos
-CREATE DATABASE IF NOT EXISTS gestionInventario CHARACTER SET utf8 COLLATE utf8_general_ci;
-USE gestionInventario;
+CREATE DATABASE IF NOT EXISTS gestion_inventario;
+USE gestion_inventario;
 
--- Tabla para gestionar las categorías de los equipos
-CREATE TABLE categorias (
+CREATE TABLE IF NOT EXISTS categoria (
     id_categoria INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(20) NOT NULL,
-    descripcion VARCHAR(100) NOT NULL,
-    estado BOOLEAN NOT NULL DEFAULT TRUE,
-    fecha_creacion DATE NOT NULL DEFAULT CURRENT_DATE,
-    fecha_modificacion DATE NOT NULL DEFAULT CURRENT_DATE
+    nombre VARCHAR(100) NOT NULL,
+    descripcion TEXT,
+    estado DECIMAL(10, 2) NOT NULL,
+    fecha_modificacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabla para almacenar la información de los proveedores
-CREATE TABLE proveedores (
-    id_proveedor INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(30),
-    telefono VARCHAR(10),
-    email VARCHAR(30)
-);
-
--- Tabla para los usuarios del sistema
-CREATE TABLE usuarios (
-    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(30),
-    apellido VARCHAR(50),
-    email VARCHAR(20),
-    telefono VARCHAR(10),
-    direccion VARCHAR(30),
-    rol ENUM('superAdmin', 'admin') NOT NULL DEFAULT 'admin',
-    contraseña VARCHAR(20) NOT NULL
-);
-
--- Tabla para las sedes de la empresa
-CREATE TABLE sedes (
-    id_sede INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(30) NOT NULL,
-    direccion VARCHAR(50) NOT NULL,
-    telefono VARCHAR(10) NOT NULL,
-    estado BOOLEAN NOT NULL DEFAULT TRUE
-);
-
--- Tabla para los centros de costos
-CREATE TABLE centro_costos (
-    id_centro_costo INT AUTO_INCREMENT PRIMARY KEY,
-    nombre VARCHAR(30) NOT NULL,
-    codigo VARCHAR(10) NOT NULL,
-    descripcion VARCHAR(100) NOT NULL,
-    estado BOOLEAN NOT NULL DEFAULT TRUE,
-    fecha_creacion DATE NOT NULL DEFAULT CURRENT_DATE,
-    fecha_modificacion DATE NOT NULL DEFAULT CURRENT_DATE
-);
-
--- Tabla para los equipos, que depende de categorias, sedes y proveedores
-CREATE TABLE equipos (
-    id_producto INT AUTO_INCREMENT PRIMARY KEY,
-    serial VARCHAR(30) NOT NULL,
-    marca VARCHAR(20) NOT NULL,
-    modelo VARCHAR(20) NOT NULL,
-    descripcion VARCHAR(100),
-    fecha DATE NOT NULL DEFAULT CURRENT_DATE,
-    estado BOOLEAN NOT NULL DEFAULT TRUE,
-    id_categoria INT NOT NULL,
-    id_sede INT NOT NULL,
-    id_proveedor INT NOT NULL,
-    FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria),
-    FOREIGN KEY (id_sede) REFERENCES sedes(id_sede),
-    FOREIGN KEY (id_proveedor) REFERENCES proveedores(id_proveedor)
-);
-
--- Tabla para el stock, que depende de la tabla de categorías
-CREATE TABLE stock (
-    id_stock INT AUTO_INCREMENT PRIMARY KEY,
-    cantidad INT,
-    ubicacion VARCHAR(50),
+CREATE TABLE IF NOT EXISTS equipos(
+    id_equipo INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    descripcion TEXT,
+    codigoProducto VARCHAR(50) UNIQUE NOT NULL,
     id_categoria INT,
-    FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria)
-
+    FOREIGN KEY (id_categoria) REFERENCES categoria(id_categoria)
 );
 
--- Tabla para el seguimiento, que depende de proveedores, usuarios, categorias y sedes
-CREATE TABLE seguimiento (
-    id_seguimiento INT AUTO_INCREMENT PRIMARY KEY,
-    id_proveedor INT NOT NULL,
-    id_usuario INT NOT NULL,
-    id_categoria INT NOT NULL,
-    id_sede INT NOT NULL,
-    fecha DATE NOT NULL DEFAULT CURRENT_DATE,
-    descripcion VARCHAR(100) NOT NULL,
-    FOREIGN KEY (id_proveedor) REFERENCES proveedores(id_proveedor),
-    FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario),
-    FOREIGN KEY (id_categoria) REFERENCES categorias(id_categoria),
-    FOREIGN KEY (id_sede) REFERENCES sedes(id_sede)
+CREATE TABLE IF NOT EXISTS sedes (
+    id_sede VARCHAR(50) PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    direccion TEXT
+);
+
+CREATE TABLE IF NOT EXISTS stock (
+    id_stock INT AUTO_INCREMENT PRIMARY KEY,
+    id_equipo INT,
+    cantidad INT NOT NULL,
+    id_sede VARCHAR(50) NOT NULL,
+    FOREIGN KEY (id_sede) REFERENCES sedes (id_sede),
+    FOREIGN KEY (id_equipo) REFERENCES equipos(id_equipo)
+);
+
+CREATE TABLE IF NOT EXISTS seguimiento (
+    id_movimiento INT AUTO_INCREMENT PRIMARY KEY,
+    id_equipo INT,
+    cantidad INT NOT NULL,
+    tipo_movimiento ENUM('entrada', 'salida') NOT NULL,
+    fecha TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    id_sede_origen VARCHAR(50),
+    id_sede_destino VARCHAR(50),
+    FOREIGN KEY (id_equipo) REFERENCES equipos(id_equipo),
+    FOREIGN KEY (id_sede_origen) REFERENCES sedes(id_sede),
+    FOREIGN KEY (id_sede_destino) REFERENCES sedes(id_sede)
+);
+
+CREATE TABLE IF NOT EXISTS proveedores (
+    id_proveedor INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    id_equipo INT,
+    id_stock INT,
+    FOREIGN KEY (id_equipo) REFERENCES equipos(id_equipo),
+    FOREIGN KEY (id_stock) REFERENCES stock(id_stock)
+);
+
+CREATE TABLE IF NOT EXISTS usuarios (
+    id_usuario INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    apellido VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    telefono VARCHAR(15),
+    direccion TEXT,
+    contrasena VARCHAR(255) NOT NULL,
+    rol ENUM('admin', 'usuario') NOT NULL,
+    fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS centro_costos (
+    id_centroCostos INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL,
+    id_sede VARCHAR(50),
+    id_equipo INT,
+    id_seguimiento INT,
+    FOREIGN KEY (id_sede) REFERENCES sedes(id_sede),
+    FOREIGN KEY (id_seguimiento) REFERENCES seguimiento(id_movimiento),
+    FOREIGN KEY (id_equipo) REFERENCES equipos(id_equipo)
 );
