@@ -1,12 +1,13 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const db = require("../services/db.service"); // tu conexión MySQL
+const db = require("../services/db.service"); // conexión a MySQL
 
-// Registro de usuario
+// 📍 Registro de usuario
 exports.register = async (req, res) => {
   try {
     const { nombre, apellido, email, telefono, direccion, contrasena, rol } = req.body;
 
+    // Validación de campos obligatorios
     if (!nombre || !apellido || !email || !contrasena || !rol) {
       return res.status(400).json({ message: "Faltan campos obligatorios" });
     }
@@ -17,7 +18,7 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: "El email ya está registrado" });
     }
 
-    // Hashear contraseña
+    // Hashear la contraseña
     const hashedPassword = await bcrypt.hash(contrasena, 10);
 
     // Insertar en la BD
@@ -26,13 +27,19 @@ exports.register = async (req, res) => {
       [nombre, apellido, email, telefono, direccion, hashedPassword, rol]
     );
 
-    res.status(201).json({ message: "Usuario registrado exitosamente", userId: result.insertId });
+    res.status(201).json({
+      message: "Usuario registrado exitosamente",
+      userId: result.insertId,
+    });
   } catch (error) {
-    res.status(500).json({ message: "Error al registrar el usuario", error: error.message });
+    res.status(500).json({
+      message: "Error al registrar el usuario",
+      error: error.message,
+    });
   }
 };
 
-// Login de usuario
+// 📍 Login de usuario
 exports.login = async (req, res) => {
   try {
     const { email, contrasena } = req.body;
@@ -55,15 +62,28 @@ exports.login = async (req, res) => {
       return res.status(401).json({ message: "Contraseña incorrecta" });
     }
 
-    // Generar token
+    // Generar token JWT
     const token = jwt.sign(
       { id: usuario.id, email: usuario.email, rol: usuario.rol },
       process.env.JWT_SECRET,
       { expiresIn: "1h" }
     );
 
-    res.json({ message: "Login exitoso", token });
+    res.json({
+      message: "Login exitoso",
+      token,
+      usuario: {
+        id: usuario.id,
+        nombre: usuario.nombre,
+        apellido: usuario.apellido,
+        email: usuario.email,
+        rol: usuario.rol,
+      },
+    });
   } catch (error) {
-    res.status(500).json({ message: "Error al iniciar sesión", error: error.message });
+    res.status(500).json({
+      message: "Error al iniciar sesión",
+      error: error.message,
+    });
   }
 };
