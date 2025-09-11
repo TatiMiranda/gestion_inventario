@@ -27,11 +27,11 @@ exports.create = async (req, res) => {
 };
 
 // Obtener todos los movimientos
-exports.findAll = async (req, res) => {
+exports.getAll = async (req, res) => {
   try {
     const movimientos = await prisma.seguimiento.findMany({
       include: {
-        equipo: true,  // si en schema.prisma definiste relación con equipos
+        equipo: true,
         sede_origen: true,
         sede_destino: true,
       },
@@ -42,18 +42,8 @@ exports.findAll = async (req, res) => {
   }
 };
 
-// Obtener todos los movimientos
-exports.findAll = async (req, res) => {
-  try {
-    const movimientos = await prisma.seguimiento.findMany(); // sin include
-    res.json(movimientos);
-  } catch (error) {
-    res.status(500).json({ message: "Error al obtener movimientos", error: error.message });
-  }
-};
-
 // Obtener un movimiento por ID
-exports.findOne = async (req, res) => {
+exports.getById = async (req, res) => {
   try {
     const movimiento = await prisma.seguimiento.findUnique({
       where: { id: parseInt(req.params.id) }
@@ -68,14 +58,15 @@ exports.findOne = async (req, res) => {
     res.status(500).json({ message: "Error al obtener el movimiento", error: error.message });
   }
 };
+
 // Actualizar un movimiento por ID
 exports.update = async (req, res) => {
   try {
-    const id = parseInt(req.params.id); // 👈 aseguramos que sea número
+    const id = parseInt(req.params.id);
     const { id_equipo, cantidad, tipo_movimiento, id_sede_origen, id_sede_destino } = req.body;
 
     const movimiento = await prisma.seguimiento.update({
-      where: { id }, // ya es número
+      where: { id },
       data: { id_equipo, cantidad, tipo_movimiento, id_sede_origen, id_sede_destino },
     });
 
@@ -85,5 +76,23 @@ exports.update = async (req, res) => {
       return res.status(404).json({ message: `No se encontró movimiento con id ${req.params.id}` });
     }
     res.status(500).json({ message: "Error al actualizar el movimiento", error: error.message });
+  }
+};
+
+// Eliminar un movimiento por ID
+exports.delete = async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+
+    await prisma.seguimiento.delete({
+      where: { id },
+    });
+
+    res.json({ message: `Movimiento con id ${req.params.id} eliminado correctamente` });
+  } catch (error) {
+    if (error.code === "P2025") {
+      return res.status(404).json({ message: `No se encontró movimiento con id ${req.params.id}` });
+    }
+    res.status(500).json({ message: "Error al eliminar el movimiento", error: error.message });
   }
 };

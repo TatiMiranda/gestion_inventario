@@ -1,20 +1,14 @@
 const express = require("express");
 const router = express.Router();
-const centroCostosController = require("../controllers/centrocostos.controller");
 
-// 📍 Obtener todos los centros de costos
-router.get("/", centroCostosController.getAll);
+// OJO: el nombre debe coincidir exactamente con tu archivo (centroCostos.controller.js)
+const centroCostosController = require("../controllers/centroCostos.controller.js");
 
-// 📍 Obtener un centro de costos por ID
-router.get("/:id", centroCostosController.getById);
-
-// 📍 Crear un nuevo centro de costos
+// Rutas CRUD
 router.post("/", centroCostosController.create);
-
-// 📍 Actualizar un centro de costos por ID
+router.get("/", centroCostosController.findAll);
+router.get("/:id", centroCostosController.findOne);
 router.put("/:id", centroCostosController.update);
-
-// 📍 Eliminar un centro de costos por ID
 router.delete("/:id", centroCostosController.delete);
 
 module.exports = router;

@@ -1,22 +1,22 @@
 const express = require("express");
 const router = express.Router();
 
-const authRoutes = require("./auth.route");
-const centroCostosRoutes = require("./centrocostos.route");
-const equiposRoutes = require("./equipos.route");
-const proveedorRoutes = require("./proveedor.route");
+// Importar rutas
+const userRoute = require("./user.route");
 const sedesRoutes = require("./sedes.route");
 const seguimientoRoutes = require("./seguimiento.route");
-const userRoutes = require("./user.route");
+const centroCostosRoute = require("./centrocostos.route");
+const proveedoresRoute = require("./proveedores.route");
+const equiposRoute = require("./equipos.route");
 
-router.use("/auth", authRoutes);
-router.use("/centrocostos", centroCostosRoutes);
-router.use("/equipos", equiposRoutes);
-router.use("/proveedores", proveedorRoutes);
+
+
+// Usar rutas
+router.use("/users", userRoute);
 router.use("/sedes", sedesRoutes);
 router.use("/seguimiento", seguimientoRoutes);
-router.use("/users", userRoutes);
+router.use("/centrocostos", centroCostosRoute);
+router.use("/proveedores", proveedoresRoute);
+router.use("/equipos", equiposRoute);
 
 module.exports = router;
-
-

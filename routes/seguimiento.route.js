@@ -1,3 +1,4 @@
+// routes/seguimiento.route.js
 const express = require("express");
 const router = express.Router();
 const seguimientoController = require("../controllers/seguimiento.controller");

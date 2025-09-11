@@ -34,7 +34,7 @@ model Equipo {
   stock        Stock[]
   seguimiento  Seguimiento[]
   centroCostos CentroCostos[]
-  proveedores  Proveedores[] // 👈 Relación inversa agregada
+  proveedores  Proveedor[] // relación inversa con Proveedor
 
   @@map("Equipo")
 }
@@ -50,16 +50,19 @@ model Categoria {
   @@map("Categoria")
 }
 
-model Proveedores {
-  id_proveedor Int      @id @default(autoincrement())
-  nombre       String
-  id_equipo    Int
-  id_stock     Int
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+model Proveedor {
+  id_proveedor      Int      @id @default(autoincrement())
+  nombre            String
+  equipos_proveidos String?  // texto libre: ej. "Monitores, Teclados"
+  stock_proveido    Int?     // cantidad general de stock
+  id_equipo         Int?
+  id_stock          Int?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
-  equipo Equipo @relation(fields: [id_equipo], references: [id_equipo])
-  stock  Stock  @relation(fields: [id_stock], references: [id_stock])
+  // Relaciones
+  equipo Equipo? @relation(fields: [id_equipo], references: [id_equipo])
+  stock  Stock?  @relation(fields: [id_stock], references: [id_stock])
 
   @@map("Proveedores")
 }
@@ -103,9 +106,9 @@ model Stock {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  equipo      Equipo        @relation(fields: [id_equipo], references: [id_equipo])
-  sede        Sede          @relation(fields: [id_sede], references: [id_sede])
-  proveedores Proveedores[]
+  equipo      Equipo       @relation(fields: [id_equipo], references: [id_equipo])
+  sede        Sede         @relation(fields: [id_sede], references: [id_sede])
+  proveedores Proveedor[]  // relación inversa con Proveedor
 
   @@map("Stock")
 }
