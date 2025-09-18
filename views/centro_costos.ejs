@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ABAI Dashboard - Centro de Costos</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+    <!-- Estilos personalizados (idénticos a equipos.html) -->
+    <style>
+        :root {
+            --primary-blue: #1b263b;
+            --gradient-start: #4facfe;
+            --gradient-end: #1b263b;
+            --font-family-base: 'Segoe UI', Roboto, Arial, sans-serif;
+        }
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: var(--font-family-base);
+        }
+        #wrapper {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+        }
+        #sidebar-wrapper {
+            min-height: 100vh;
+            width: 250px;
+            flex-shrink: 0;
+            transition: margin-left .25s ease-out;
+            background: linear-gradient(180deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+        }
+        .bg-dark-blue {
+            background-color: var(--primary-blue) !important;
+        }
+        .sidebar-heading {
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo {
+            width: 40px;
+            height: 40px;
+            margin-right: 10px;
+        }
+        .logo-text {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0;
+        }
+        #page-content-wrapper {
+            flex-grow: 1;
+        }
+        .list-group-item {
+            border-left: 0;
+            border-right: 0;
+            border-radius: 0;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+        .list-group-item.active {
+            background-color: rgba(255, 255, 255, 0.15) !important;
+            border-left: 5px solid #0d6efd;
+            padding-left: 1rem !important;
+        }
+        .list-group-item:hover {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            color: #fff;
+        }
+        .btn-primary {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+        .btn-primary:hover {
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+        }
+        .table thead th {
+            background-color: #e9ecef;
+            font-weight: 600;
+        }
+        .table-striped > tbody > tr:nth-of-type(odd) {
+            background-color: rgba(0, 0, 0, 0.03);
+        }
+        .card {
+            flex-grow: 1;
+        }
+        .table-responsive {
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .mt-auto {
+            margin-top: auto !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="d-flex" id="wrapper">
+        <!-- Sidebar -->
+        <div class="bg-dark-blue border-end" id="sidebar-wrapper">
+            <div class="sidebar-heading">
+                <img src="img/logo_principal_abai-removebg-preview.png" alt="ABAI Logo" class="logo" style="width: 56%;">
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="dashboard.html" class="list-group-item list-group-item-action active  bg-dark-blue text-white p-3"><i class="bi bi-speedometer2 me-2"></i> Dashboard</a>
+                <a href="equipos.html" class="list-group-item list-group-item-action active bg-dark-blue text-white p-3"><i class="bi bi-laptop me-2"></i> Equipos</a>
+                <a href="categoria.html" class="list-group-item list-group-item-action active  bg-dark-blue text-white p-3"><i class="bi bi-tags-fill me-2"></i> Categorías</a>
+                <a href="sedes.html" class="list-group-item list-group-item-action active bg-dark-blue text-white p-3"><i class="bi bi-building me-2"></i> Sedes</a>
+                <a href="seguimiento.html" class="list-group-item list-group-item-action active bg-dark-blue text-white p-3"><i class="bi bi-graph-up-arrow me-2"></i> Seguimiento</a>
+                <a href="stock.html" class="list-group-item list-group-item-action active bg-dark-blue text-white p-3"><i class="bi bi-box-seam me-2"></i> Stock</a>
+                <a href="centro_costos.html" class="list-group-item list-group-item-action active bg-dark-blue text-white p-3"><i class="bi bi-cash-stack me-2"></i> Centro de Costos</a>
+                <a href="provedor.html" class="list-group-item list-group-item-action active bg-dark-blue text-white p-3"><i class="bi bi-truck-flatbed me-2"></i> Proveedores</a>
+            </div>
+        </div>
+        <!-- /#sidebar-wrapper -->
+
+        <!-- Page Content -->
+        <div id="page-content-wrapper" class="w-100 bg-light">
+            <div class="container-fluid py-5 h-100 d-flex flex-column">
+                <div class="mx-auto" style="max-width: 1300px; width: 100%;">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h1 class="h3">Centro de Costos</h1>
+                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCentro">
+                            <i class="bi bi-plus-circle me-2"></i>
+                            Agregar centro de costos
+                        </button>
+                    </div>
+                    <div class="card p-3 shadow-sm flex-grow-1 d-flex flex-column">
+                        <div class="table-responsive flex-grow-1">
+                            <table class="table table-striped table-hover mb-0" id="tabla-centros">
+                                <thead>
+                                    <tr>
+                                        <th>Nombre</th>
+                                        <th>Sede Asociada</th>
+                                        <th>Equipos Asociados</th>
+                                        <th>Movimientos (Seguimiento)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Administración</td>
+                                        <td>Sede Central</td>
+                                        <td>Laptop HP, Silla ergonómica</td>
+                                        <td>Ingreso Laptop HP (2024-06-01), Traslado Silla ergonómica (2024-06-02)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- Aquí podrías agregar paginación si lo necesitas -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Agregar Centro de Costos -->
+    <div class="modal fade" id="modalCentro" tabindex="-1" aria-labelledby="modalCentroLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modalCentroLabel">Agregar nuevo centro de costos</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          </div>
+          <div class="modal-body">
+            <form id="form-centro">
+              <div class="mb-3">
+                <label for="nombre-centro" class="form-label">Nombre del centro de costos</label>
+                <input type="text" class="form-control" id="nombre-centro" required>
+              </div>
+              <div class="mb-3">
+                <label for="sede-centro" class="form-label">Sede asociada</label>
+                <select class="form-control" id="sede-centro" required>
+                  <option value="">Seleccione una sede</option>
+                  <option>avenida 30 de agosto #50-54</option>
+                  <option>Camping</option>
+                  <option>Panamericana</option>
+                  <option>Bogota</option>
+                  <option>Arboleda</option>
+                </select>
+              </div>
+              <div class="mb-3">
+                <label for="equipos-centro" class="form-label">Equipos asociados</label>
+                <select class="form-control" id="equipos-centro" multiple>
+                  <option>Laptop HP</option>
+                  <option>Silla ergonómica</option>
+                </select>
+                <small class="form-text text-muted">Mantén presionada la tecla Ctrl (Cmd en Mac) para seleccionar varios.</small>
+              </div>
+              <div class="mb-3">
+                <label for="movimientos-centro" class="form-label">Movimientos (Seguimiento)</label>
+                <input type="text" class="form-control" id="movimientos-centro" placeholder="Ej: Ingreso Laptop HP (2024-06-01)">
+              </div>
+              <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary">Agregar</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+    // JS para agregar centro de costos a la tabla (sin backend)
+    document.getElementById('form-centro').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const nombre = document.getElementById('nombre-centro').value.trim();
+        const sede = document.getElementById('sede-centro').value;
+        const equiposSelect = document.getElementById('equipos-centro');
+        const equipos = Array.from(equiposSelect.selectedOptions).map(opt => opt.value).join(', ');
+        const movimientos = document.getElementById('movimientos-centro').value.trim();
+        if(nombre && sede) {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>${nombre}</td>
+                <td>${sede}</td>
+                <td>${equipos || '-'}</td>
+                <td>${movimientos || '-'}</td>
+            `;
+            document.querySelector('#tabla-centros tbody').appendChild(tr);
+            document.getElementById('form-centro').reset();
+            const modal = bootstrap.Modal.getInstance(document.getElementById('modalCentro'));
+            modal.hide();
+        }
+    });
+    </script>
+</body>
+</html>

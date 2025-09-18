@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Perfil de Usuario - ABAI</title>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Nunito:400,600,700&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+
+  <style>
+    :root {
+      --primary-blue: #0a58a7;
+      --secondary-blue: #06396e;
+      --gradient-start: #4facfe;
+      --gradient-end: #1b263b;
+      --card-bg: rgba(255, 255, 255, 0.95);
+      --shadow: rgba(0, 0, 0, 0.15);
+      --font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+    }
+    
+    body {
+      height: 100vh;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+      background: linear-gradient(135deg, #4facfe, #1b263b);
+    }
+
+    .profile-card {
+      background: #f8f9fa;
+      padding: 2.5rem;
+      border-radius: 12px;
+      box-shadow: 0px 4px 20px rgba(0,0,0,0.2);
+      width: 100%;
+      max-width: 420px;
+      text-align: center;
+    }
+
+    .profile-card img {
+      width: 100px;
+      margin-bottom: 1rem;
+      border-radius: 50%;
+      border: 3px solid var(--primary-blue);
+    }
+
+    .profile-card h2 {
+      font-weight: 700;
+      color: #1b263b;
+      margin-bottom: 2rem;
+    }
+
+    .form-control {
+      padding-left: 2.5rem;
+      height: 45px;
+    }
+
+    .form-group {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    .form-group i {
+      position: absolute;
+      top: 50%;
+      left: 10px;
+      transform: translateY(-50%);
+      font-size: 1.2rem;
+      color: #6c757d;
+    }
+
+    .btn-profile {
+      width: 100%;
+      height: 45px;
+      font-weight: bold;
+      background: #1b263b;
+      border: none;
+      color: #fff;
+      border-radius: 6px;
+      transition: all 0.3s ease;
+    }
+
+    .btn-profile:hover {
+      background: #162033;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="profile-card">
+    <i class="bi bi-person-circle fs-3 text-primary me-2"></i>
+    <h2>Mi Perfil</h2>
+
+    <form id="form-perfil">
+      <div class="form-group">
+        <i class="bi bi-person"></i>
+        <input type="text" class="form-control" id="nombre-usuario" value="Juan Pérez" required>
+      </div>
+
+      <div class="form-group">
+        <i class="bi bi-envelope"></i>
+        <input type="email" class="form-control" id="email-usuario" value="juan.perez@email.com" required>
+      </div>
+
+      <div class="form-group">
+        <i class="bi bi-telephone"></i>
+        <input type="text" class="form-control" id="telefono-usuario" value="555-1234">
+      </div>
+
+      <div class="form-group">
+        <i class="bi bi-shield-lock"></i>
+        <input type="text" class="form-control" id="rol-usuario" value="Administrador" readonly>
+      </div>
+
+      <button type="submit" class="btn-profile">Guardar Cambios</button>
+    </form>
+  </div>
+
+    <script>
+    // JS simple para mostrar alerta al guardar (sin backend)
+    document.getElementById('form-perfil').addEventListener('submit', function(e) {
+        e.preventDefault();
+        alert('Cambios guardados correctamente.');
+        
+        // Redirigir al login después de 1 segundo
+        setTimeout(function() {
+        window.location.href = "dashboard.html";
+        }, 1000);
+    });
+    </script>
+
+
+</body>
+</html>
