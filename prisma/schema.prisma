@@ -20,20 +20,25 @@ model Categoria {
   id          Int      @id @default(autoincrement())
   nombre      String
   descripcion String?
-  equipos     Equipo[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relación inversa con Equipo
+  equipos Equipo[]
 }
 
 model Equipo {
-  id           Int            @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   nombre       String
   descripcion  String?
   id_categoria Int
-  categoria    Categoria      @relation(fields: [id_categoria], references: [id])
+  categoria    Categoria @relation(fields: [id_categoria], references: [id])
+
   stock        Stock[]
-  seguimientos Seguimiento[]
-  centrocostos CentroCostos[] // 👈 relación inversa
-  sede         Sede?          @relation(fields: [id_sede], references: [id])
-  id_sede      Int?
+  CentroCostos CentroCostos[]
+  Sede         Sede?          @relation(fields: [sedeId], references: [id])
+  sedeId       Int?
+  Seguimiento  Seguimiento[]
 }
 
 model CentroCostos {
