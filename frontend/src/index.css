@@ -1,0 +1,11 @@
+/* Importaciones de Tailwind: SIEMPRE primero */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 🔹 Estilos globales opcionales (sin sobreescribir Tailwind) */
+html, body, #root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}

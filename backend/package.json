@@ -1,16 +1,10 @@
 {
-  "name": "backend",
+  "name": "bk_inventario",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "nodemon src/index.js",
-    "start": "node src/index.js"
+    "dev": "node src/index.js"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": "",
   "dependencies": {
     "@prisma/client": "^6.16.2",
     "bcryptjs": "^3.0.2",
@@ -18,10 +12,10 @@
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
-    "prisma": "^6.16.2",
-    "zod": "^4.1.9"
+    "pg": "^8.16.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10"
   }
 }
