@@ -3,29 +3,43 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  name      String
-  email     String    @unique
-  password  String
-  role      Role      @default(AGENT)
+  id          Int          @id @default(autoincrement())
+  nombre      String
+  email       String       @unique
+  password    String
+  createdAt   DateTime     @default(now())
+  
+  // Relación inversa con Assignment
   assignments Assignment[]
-  createdAt DateTime  @default(now())
+}
+
+
+model Categoria {
+  id        Int      @id @default(autoincrement())
+  nombre    String   @unique
+  equipos  Equipo[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones inversas
+  items     Item[]
 }
 
 model Item {
-  id         Int        @id @default(autoincrement())
-  name       String
-  type       String
-  status     ItemStatus @default(ACTIVE)
-  serial     String?    @unique
+  id          Int          @id @default(autoincrement())
+  nombre      String
+  categoriaId Int
+  categoria   Categoria    @relation(fields: [categoriaId], references: [id])
+  
+  // Relación inversa con Assignment
   assignments Assignment[]
-  createdAt  DateTime   @default(now())
 }
+
 
 model Assignment {
   id         Int      @id @default(autoincrement())
@@ -36,6 +50,26 @@ model Assignment {
   assignedAt DateTime @default(now())
   returnedAt DateTime?
 }
+
+model Equipo {
+  id          Int        @id @default(autoincrement())
+  nombre      String
+  codigo      String     @unique
+  categoriaId Int?
+  categoria   Categoria? @relation(fields: [categoriaId], references: [id])
+  updatedAt   DateTime   @updatedAt
+  estado      String     @default("Activo")  // 👈 Nuevo campo
+  stock       Stock?
+}
+
+
+model Stock {
+  id        Int     @id @default(autoincrement())
+  equipoId  Int     @unique
+  cantidad  Int     @default(1)
+  equipo    Equipo  @relation(fields: [equipoId], references: [id])
+}
+
 
 enum Role {
   ADMIN

@@ -1,7 +1,8 @@
 {
   "name": "bk_inventario",
   "version": "1.0.0",
-  "main": "index.js",
+  "type": "module",
+  "main": "src/index.js",
   "scripts": {
     "dev": "node src/index.js"
   },

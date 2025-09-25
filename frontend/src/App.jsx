@@ -10,13 +10,15 @@ import Sedes from "./pages/sedes";
 import Seguimiento from "./pages/seguimiento";
 import Stock from "./pages/stock";
 import Layout from "./components/layout";
+import Register from "./pages/register";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Ruta pública */}
+        {/* Rutas públicas */}
         <Route path="/" element={<Login />} />
+        <Route path="/register" element={<Register />} />
 
         {/* Rutas protegidas dentro de un layout */}
         <Route element={<Layout />}>

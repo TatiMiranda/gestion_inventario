@@ -1,37 +1,38 @@
-const express = require('express');
-const router = express.Router();
-const bcrypt = require('bcryptjs');
-const { PrismaClient } = require('@prisma/client');
-const { sign } = require('../utils/jwt');
+import { Router } from "express";
+import { PrismaClient } from "@prisma/client";
+import bcrypt from "bcryptjs";
 
+const router = Router();
 const prisma = new PrismaClient();
 
-router.post('/register', async (req, res) => {
-  const { name, email, password, role } = req.body;
-  const hashed = await bcrypt.hash(password, 10);
+// Registro de usuario
+router.post("/register", async (req, res) => {
   try {
-    const user = await prisma.user.create({
-      data: { name, email, password: hashed, role }
+    const { nombre, email, password } = req.body;
+
+    if (!nombre || !email || !password) {
+      return res.status(400).json({ message: "Todos los campos son obligatorios" });
+    }
+
+    // Verificar si el usuario ya existe
+    const existingUser = await prisma.user.findUnique({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ message: "El correo ya está registrado" });
+    }
+
+    // Encriptar contraseña
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Crear usuario
+    const newUser = await prisma.user.create({
+      data: { nombre, email, password: hashedPassword },
     });
-    res.json({ id: user.id, email: user.email });
-  } catch (e) {
-    res.status(400).json({ error: 'Email ya existe' });
+
+    res.status(201).json({ message: "Usuario registrado ✅", user: newUser });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error en el servidor" });
   }
 });
 
-router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-  const user = await prisma.user.findUnique({ where: { email }});
-  if (!user) return res.status(401).json({ error: 'Credenciales inválidas' });
-
-  const ok = await bcrypt.compare(password, user.password);
-  if (!ok) return res.status(401).json({ error: 'Credenciales inválidas' });
-
-  const token = sign({ id: user.id, role: user.role, email: user.email });
-  res.json({
-    token,
-    user: { id: user.id, email: user.email, name: user.name, role: user.role }
-  });
-});
-
-module.exports = router;
+export default router;

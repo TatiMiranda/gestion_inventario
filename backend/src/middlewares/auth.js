@@ -1,6 +1,6 @@
-const { verify } = require('../utils/jwt');
+import { verify } from '../utils/jwt.js';
 
-module.exports = function (req, res, next) {
+export default function (req, res, next) {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token provided' });
 

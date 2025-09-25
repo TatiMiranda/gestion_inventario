@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -10,19 +12,18 @@ export default function Login() {
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log("Login con:", form);
+
+    // Aquí puedes validar con backend
+    // Si el login es exitoso, redirige al dashboard
+    navigate("/dashboard");
   };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
-        
         {/* Logo */}
         <div className="flex justify-center mb-6">
-          <img
-            src="/vite.svg" // 👉 cambia por tu logo
-            alt="Logo"
-            className="w-20 h-20"
-          />
+          <img src="/vite.svg" alt="Logo" className="w-20 h-20" />
         </div>
 
         {/* Título */}
@@ -101,7 +102,10 @@ export default function Login() {
         {/* Registro */}
         <p className="text-sm text-gray-500 text-center mt-6">
           ¿No tienes cuenta?{" "}
-          <a href="/register" className="text-indigo-600 font-semibold hover:underline">
+          <a
+            href="/register"
+            className="text-indigo-600 font-semibold hover:underline"
+          >
             Regístrate aquí
           </a>
         </p>
@@ -109,4 +113,3 @@ export default function Login() {
     </div>
   );
 }
-import { BrowserRouter, Routes, Route } from "react-router-dom";
