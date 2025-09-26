@@ -5,15 +5,21 @@ export default function Categorias() {
   const [nuevaCategoria, setNuevaCategoria] = useState("");
   const [editando, setEditando] = useState(null);
   const [nombreEdit, setNombreEdit] = useState("");
+  const [mensaje, setMensaje] = useState("");
+  const [loading, setLoading] = useState(true);
 
   // 🔹 Obtener categorías con cantidad de equipos
   const fetchCategorias = async () => {
     try {
+      setLoading(true);
       const res = await fetch("http://localhost:4000/api/categorias");
       const data = await res.json();
       setCategorias(data);
     } catch (err) {
       console.error("Error al cargar categorías:", err);
+      setMensaje("❌ Error al cargar categorías");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -24,42 +30,60 @@ export default function Categorias() {
   // 🔹 Crear categoría
   const handleCrear = async (e) => {
     e.preventDefault();
-    if (!nuevaCategoria.trim()) return alert("Escribe un nombre");
+    if (!nuevaCategoria.trim()) return setMensaje("⚠️ Escribe un nombre");
 
-    const res = await fetch("http://localhost:4000/api/categorias", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nombre: nuevaCategoria }),
-    });
+    if (
+      categorias.some(
+        (c) => c.nombre.toLowerCase() === nuevaCategoria.toLowerCase()
+      )
+    ) {
+      return setMensaje("⚠️ Esa categoría ya existe");
+    }
 
-    const data = await res.json();
-    if (!data.error) {
-      setNuevaCategoria("");
-      fetchCategorias();
-      alert("✅ Categoría creada");
-    } else {
-      alert(data.error);
+    try {
+      const res = await fetch("http://localhost:4000/api/categorias", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre: nuevaCategoria }),
+      });
+
+      const data = await res.json();
+      if (!data.error) {
+        setCategorias([...categorias, data]);
+        setNuevaCategoria("");
+        setMensaje("✅ Categoría creada");
+      } else {
+        setMensaje(data.error);
+      }
+    } catch {
+      setMensaje("❌ Error al crear categoría");
     }
   };
 
   // 🔹 Editar categoría
   const handleEditar = async (id) => {
-    if (!nombreEdit.trim()) return;
+    if (!nombreEdit.trim()) return setMensaje("⚠️ Escribe un nombre válido");
 
-    const res = await fetch(`http://localhost:4000/api/categorias/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nombre: nombreEdit }),
-    });
+    try {
+      const res = await fetch(`http://localhost:4000/api/categorias/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ nombre: nombreEdit }),
+      });
 
-    const data = await res.json();
-    if (!data.error) {
-      setEditando(null);
-      setNombreEdit("");
-      fetchCategorias();
-      alert("✅ Categoría actualizada");
-    } else {
-      alert(data.error);
+      const data = await res.json();
+      if (!data.error) {
+        setCategorias(
+          categorias.map((c) => (c.id === id ? { ...c, nombre: nombreEdit } : c))
+        );
+        setEditando(null);
+        setNombreEdit("");
+        setMensaje("✅ Categoría actualizada");
+      } else {
+        setMensaje(data.error);
+      }
+    } catch {
+      setMensaje("❌ Error al actualizar categoría");
     }
   };
 
@@ -67,22 +91,33 @@ export default function Categorias() {
   const handleEliminar = async (id) => {
     if (!confirm("¿Seguro que deseas eliminar esta categoría?")) return;
 
-    const res = await fetch(`http://localhost:4000/api/categorias/${id}`, {
-      method: "DELETE",
-    });
+    try {
+      const res = await fetch(`http://localhost:4000/api/categorias/${id}`, {
+        method: "DELETE",
+      });
 
-    const data = await res.json();
-    if (!data.error) {
-      fetchCategorias();
-      alert("🗑️ Categoría eliminada");
-    } else {
-      alert(data.error);
+      const data = await res.json();
+      if (!data.error) {
+        setCategorias(categorias.filter((c) => c.id !== id));
+        setMensaje("🗑️ Categoría eliminada");
+      } else {
+        setMensaje(data.error);
+      }
+    } catch {
+      setMensaje("❌ Error al eliminar categoría");
     }
   };
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold text-blue-700 mb-6">📂 Categorías</h1>
+      <h1 className="text-3xl font-bold text-blue-700 mb-6"> Categorías</h1>
+
+      {/* Mensajes */}
+      {mensaje && (
+        <div className="mb-4 p-2 bg-gray-100 border rounded text-sm text-gray-700">
+          {mensaje}
+        </div>
+      )}
 
       {/* Crear categoría */}
       <form onSubmit={handleCrear} className="flex gap-2 mb-6">
@@ -95,18 +130,20 @@ export default function Categorias() {
         />
         <button
           type="submit"
-          className="px-4 py-2 bg-purple-600 text-white rounded-lg shadow hover:bg-purple-700"
+          className="px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-purple-700"
         >
           Crear
         </button>
       </form>
 
       {/* Listado de categorías */}
-      <ul className="space-y-2">
-        {categorias.length === 0 ? (
-          <p className="text-gray-500">No hay categorías creadas.</p>
-        ) : (
-          categorias.map((cat) => (
+      {loading ? (
+        <p className="text-gray-500"> Cargando categorías...</p>
+      ) : categorias.length === 0 ? (
+        <p className="text-gray-500">No hay categorías creadas.</p>
+      ) : (
+        <ul className="space-y-2">
+          {categorias.map((cat) => (
             <li
               key={cat.id}
               className="flex justify-between items-center border p-2 rounded"
@@ -134,7 +171,6 @@ export default function Categorias() {
                 </div>
               ) : (
                 <>
-                  {/* Nombre de la categoría */}
                   <span className="font-medium">
                     {cat.nombre}{" "}
                     <span className="text-sm text-gray-500">
@@ -161,9 +197,9 @@ export default function Categorias() {
                 </>
               )}
             </li>
-          ))
-        )}
-      </ul>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

@@ -20,7 +20,7 @@ export default function Stock() {
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold text-green-700 mb-6">📦 Stock de Equipos</h1>
+      <h1 className="text-3xl font-bold text-green-700 mb-6"> Stock de Equipos</h1>
 
       {equipos.length === 0 ? (
         <p className="text-gray-500">No hay equipos registrados.</p>

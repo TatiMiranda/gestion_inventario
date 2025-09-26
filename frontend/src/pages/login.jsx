@@ -11,26 +11,28 @@ export default function Login() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Login con:", form);
 
-    // Aquí puedes validar con backend
-    // Si el login es exitoso, redirige al dashboard
-    navigate("/dashboard");
+    // 🔑 Aquí iría la validación real con backend
+    // Por ahora, simulemos que siempre se loguea correctamente
+    if (form.email && form.password) {
+      console.log("✅ Login exitoso, redirigiendo...");
+      navigate("/dashboard", { replace: true }); // ✅ Redirige al dashboard
+    } else {
+      console.log("❌ Error de login");
+    }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500">
+    <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-blue-400 via-blue-600 to-blue-900">
       <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
         {/* Logo */}
         <div className="flex justify-center mb-6">
-          <img src="/vite.svg" alt="Logo" className="w-20 h-20" />
+          <img src="/logo_blanco.png" alt="Logo" className="w-20 h-20" />
         </div>
-
         {/* Título */}
         <h2 className="text-3xl font-bold text-center text-gray-800 mb-6">
           Bienvenido 👋
         </h2>
-
         {/* Formulario */}
         <form onSubmit={handleSubmit} className="space-y-5">
           {/* Email */}
@@ -48,8 +50,8 @@ export default function Login() {
               value={form.email}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-              placeholder="ejemplo@email.com"
+              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none"
+              placeholder="123456@email.com"
             />
           </div>
 
@@ -68,15 +70,15 @@ export default function Login() {
               value={form.password}
               onChange={handleChange}
               required
-              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none"
-              placeholder="••••••••"
+              className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-blue-600 outline-none"
+              placeholder="123456"
             />
           </div>
 
           {/* Botón */}
           <button
             type="submit"
-            className="w-full py-3 bg-indigo-600 text-white font-semibold rounded-xl shadow-md hover:bg-indigo-700 transition duration-300"
+            className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl shadow-md hover:bg-blue-700 transition duration-300"
           >
             Ingresar
           </button>
@@ -104,7 +106,7 @@ export default function Login() {
           ¿No tienes cuenta?{" "}
           <a
             href="/register"
-            className="text-indigo-600 font-semibold hover:underline"
+            className="text-blue-600 font-semibold hover:underline"
           >
             Regístrate aquí
           </a>

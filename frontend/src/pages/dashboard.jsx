@@ -8,7 +8,7 @@ export default function Dashboard() {
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="bg-white rounded-3xl shadow-2xl p-10 w-full max-w-5xl"
+        className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-5xl"
       >
         {/* Header */}
         <div className="text-center mb-10">

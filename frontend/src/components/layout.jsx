@@ -1,73 +1,126 @@
 import { NavLink, Outlet } from "react-router-dom";
 import {
   LayoutDashboard,
-  Laptop,
+  Boxes,
   Tags,
+  Laptop,
   MapPin,
   Activity,
-  Boxes,
+  Package,
   LogOut,
 } from "lucide-react";
 
 export default function Layout() {
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
-      <aside className="w-64 bg-gradient-to-b from-blue-400 via-blue-600 to-blue-900 text-white flex flex-col justify-between shadow-lg backdrop-blur-md">
-        <div>
-          {/* Logo */}
-          <div className="flex flex-col items-center justify-center py-4 border-b border-blue-500/40">
-            <img
-              src="/logo_blanco.png"
-              alt="Logo"
-              className="w-56 h-auto object-contain drop-shadow-xl hover:scale-105 transition-transform duration-300"
-            />
-          </div>
-
-          {/* Menú */}
-          <nav className="px-4 py-3 space-y-2">
-            <h3 className="text-xs uppercase tracking-wider text-gray-300">
-              Navegación
-            </h3>
-
-            {[
-              { to: "/dashboard", icon: <LayoutDashboard size={20} />, label: "Dashboard" },
-              { to: "/equipos", icon: <Laptop size={20} />, label: "Equipos" },
-              { to: "/categorias", icon: <Tags size={20} />, label: "Categorías" },
-              { to: "/sedes", icon: <MapPin size={20} />, label: "Sedes" },
-              { to: "/seguimiento", icon: <Activity size={20} />, label: "Seguimiento" },
-              { to: "/stock", icon: <Boxes size={20} />, label: "Stock" },
-            ].map(({ to, icon, label }) => (
-              <NavLink
-                key={to}
-                to={to}
-                className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2 rounded-lg font-medium transition-all duration-300 ${
-                    isActive
-                      ? "bg-white/20 backdrop-blur-md border-l-4 border-white shadow-md text-white"
-                      : "hover:bg-gradient-to-r hover:from-blue-400 hover:to-blue-600 hover:translate-x-1"
-                  }`
-                }
-              >
-                {icon} {label}
-              </NavLink>
-            ))}
-          </nav>
+      <aside className="w-64 bg-gradient-to-b from-blue-500 via-blue-700 to-blue-900 text-white flex flex-col">
+        {/* Logo */}
+        <div className="p-6 text-center border-b border-blue-400">
+          <h1 className="text-2xl font-bold">Inventario</h1>
         </div>
 
-        {/* Footer Sidebar */}
-        <div className="p-4 border-t border-blue-500/40">
-          <button className="flex items-center gap-2 text-sm text-gray-200 hover:text-white transition">
-            <LogOut size={18} /> Cerrar sesión
+        {/* Menú */}
+        <nav className="flex-1 p-4 space-y-2">
+          <NavLink
+            to="/dashboard"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+                isActive ? "bg-blue-800 font-semibold" : "hover:bg-blue-600"
+              }`
+            }
+          >
+            <LayoutDashboard size={20} /> Dashboard
+          </NavLink>
+
+          <NavLink
+            to="/items"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+                isActive ? "bg-blue-800 font-semibold" : "hover:bg-blue-600"
+              }`
+            }
+          >
+            <Boxes size={20} /> Items
+          </NavLink>
+
+          <NavLink
+            to="/categorias"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+                isActive ? "bg-blue-800 font-semibold" : "hover:bg-blue-600"
+              }`
+            }
+          >
+            <Tags size={20} /> Categorías
+          </NavLink>
+
+          <NavLink
+            to="/equipos"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+                isActive ? "bg-blue-800 font-semibold" : "hover:bg-blue-600"
+              }`
+            }
+          >
+            <Laptop size={20} /> Equipos
+          </NavLink>
+
+          <NavLink
+            to="/sedes"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+                isActive ? "bg-blue-800 font-semibold" : "hover:bg-blue-600"
+              }`
+            }
+          >
+            <MapPin size={20} /> Sedes
+          </NavLink>
+
+          <NavLink
+            to="/seguimiento"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+                isActive ? "bg-blue-800 font-semibold" : "hover:bg-blue-600"
+              }`
+            }
+          >
+            <Activity size={20} /> Seguimiento
+          </NavLink>
+
+          <NavLink
+            to="/stock"
+            className={({ isActive }) =>
+              `flex items-center gap-3 px-4 py-2 rounded-lg transition ${
+                isActive ? "bg-blue-800 font-semibold" : "hover:bg-blue-600"
+              }`
+            }
+          >
+            <Package size={20} /> Stock
+          </NavLink>
+        </nav>
+
+        {/* Logout */}
+        <div className="p-4 border-t border-blue-400">
+          <button className="flex items-center gap-2 px-4 py-2 w-full text-left rounded-lg hover:bg-blue-600 transition">
+            <LogOut size={20} /> Cerrar sesión
           </button>
-          <p className="text-[11px] text-gray-400 mt-2">© 2025 ABAl Inventario</p>
         </div>
       </aside>
 
       {/* Contenido principal */}
-      <main className="flex-1 bg-gray-50 p-8">
-        <Outlet />
-      </main>
+      <div className="flex-1 flex flex-col">
+        {/* Header */}
+        <header className="bg-white shadow p-4 flex justify-between items-center">
+          <h2 className="text-xl font-semibold text-gray-700">Panel de control</h2>
+          <span className="text-gray-500 text-sm">Usuario: admin@correo.com</span>
+        </header>
+
+        {/* Contenido dinámico */}
+        <main className="flex-1 p-6">
+          <Outlet />
+        </main>
+      </div>
     </div>
   );
 }

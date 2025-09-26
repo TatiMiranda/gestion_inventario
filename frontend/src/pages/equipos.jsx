@@ -31,7 +31,7 @@ export default function Equipos() {
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold text-blue-700 mb-6">💻 Registro de Equipos</h1>
+      <h1 className="text-3xl font-bold text-blue-700 mb-6"> Registro de Equipos</h1>
 
       {/* Formulario */}
       <form onSubmit={handleAdd} className="space-y-4 mb-6">
