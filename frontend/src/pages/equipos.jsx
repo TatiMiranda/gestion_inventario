@@ -1,37 +1,65 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function Equipos() {
+  const [equipos, setEquipos] = useState([]);
   const [nombre, setNombre] = useState("");
   const [codigo, setCodigo] = useState("");
   const [estado, setEstado] = useState("Activo");
   const [categoria, setCategoria] = useState("");
+  const [sede, setSede] = useState(""); // 🔹 Nuevo estado para sede
 
-  // 🔹 Guardar equipo en la BD
+  // 📌 Cargar equipos al iniciar
+  useEffect(() => {
+    fetch("http://localhost:4000/api/equipos")
+      .then((res) => res.json())
+      .then((data) => setEquipos(data))
+      .catch((err) => console.error("Error cargando equipos:", err));
+  }, []);
+
+  // 📌 Registrar equipo
   const handleAdd = async (e) => {
     e.preventDefault();
-    if (!nombre || !codigo || !categoria) return alert("Completa todos los campos");
 
-    const res = await fetch("http://localhost:4000/api/equipos", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nombre, codigo, estado, categoria }),
-    });
+    if (!nombre || !codigo || !sede) return alert("Completa todos los campos");
 
-    const data = await res.json();
-    if (!data.error) {
-      setNombre("");
-      setCodigo("");
-      setEstado("Activo");
-      setCategoria("");
-      alert("✅ Equipo registrado correctamente");
-    } else {
-      alert(data.error);
+    try {
+      const res = await fetch("http://localhost:4000/api/equipos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          nombre,
+          codigo,
+          estado,
+          categoria: categoria || null,
+          sede, // 🔹 enviamos sede al backend
+        }),
+      });
+
+      const data = await res.json();
+      console.log("📥 Respuesta backend:", data);
+
+      if (!data.error) {
+        setEquipos((prev) => [...prev, data.equipo]);
+        setNombre("");
+        setCodigo("");
+        setEstado("Activo");
+        setCategoria("");
+        setSede(""); // 🔹 limpiar sede
+        alert("✅ Equipo registrado correctamente");
+      } else {
+        alert(data.error);
+      }
+    } catch (err) {
+      console.error("❌ Error registrando equipo:", err);
+      alert("Error de red o backend caído");
     }
   };
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold text-blue-700 mb-6"> Registro de Equipos</h1>
+      <h1 className="text-3xl font-bold text-blue-700 mb-6">
+        Registro de Equipos
+      </h1>
 
       {/* Formulario */}
       <form onSubmit={handleAdd} className="space-y-4 mb-6">
@@ -53,7 +81,6 @@ export default function Equipos() {
           required
         />
 
-        {/* Estado */}
         <select
           value={estado}
           onChange={(e) => setEstado(e.target.value)}
@@ -63,16 +90,32 @@ export default function Equipos() {
           <option value="Inactivo">Inactivo</option>
         </select>
 
-        {/* Categorías fijas */}
         <select
           value={categoria}
           onChange={(e) => setCategoria(e.target.value)}
           className="w-full px-4 py-2 rounded-lg border"
-          required
         >
           <option value="">Selecciona categoría</option>
-          <option value="Electrónico">Electrónico</option>
-          <option value="Mueble">Mueble</option>
+          <option value="Gabinete">Gabinete</option>
+          <option value="Monitor">Monitor</option>
+          <option value="Diadema">Diadema</option>
+          <option value="Otro">Otro</option>
+        </select>
+
+        {/* 🔹 Nuevo select para sede */}
+        <select
+          value={sede}
+          onChange={(e) => setSede(e.target.value)}
+          className="w-full px-4 py-2 rounded-lg border"
+          required
+        >
+          <option value="">Selecciona sede</option>
+          <option value="Manizales Centro">Manizales Centro</option>
+          <option value="Arboleda">Arboleda</option>
+          <option value="Avenida 30 de agosto">Avenida 30 de agosto</option>
+          <option value="Campin">Campin</option>
+          <option value="Dorado plaza">Dorado plaza</option>
+          <option value="Panamericana">Panamericana</option>
         </select>
 
         <button

@@ -13,21 +13,17 @@ model User {
   email       String       @unique
   password    String
   createdAt   DateTime     @default(now())
-  
-  // Relación inversa con Assignment
+
   assignments Assignment[]
 }
 
-
 model Categoria {
-  id        Int      @id @default(autoincrement())
-  nombre    String   @unique
-  equipos  Equipo[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relaciones inversas
+  id        Int       @id @default(autoincrement())
+  nombre    String    @unique
+  equipos   Equipo[]
   items     Item[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
 
 model Item {
@@ -35,18 +31,15 @@ model Item {
   nombre      String
   categoriaId Int
   categoria   Categoria    @relation(fields: [categoriaId], references: [id])
-  
-  // Relación inversa con Assignment
   assignments Assignment[]
 }
 
-
 model Assignment {
   id         Int      @id @default(autoincrement())
-  user       User     @relation(fields: [userId], references: [id])
   userId     Int
-  item       Item     @relation(fields: [itemId], references: [id])
   itemId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  item       Item     @relation(fields: [itemId], references: [id])
   assignedAt DateTime @default(now())
   returnedAt DateTime?
 }
@@ -55,21 +48,22 @@ model Equipo {
   id          Int        @id @default(autoincrement())
   nombre      String
   codigo      String     @unique
+  estado      String     @default("Activo")
+  sede        String?    // 🔹 Campo opcional de sede
   categoriaId Int?
   categoria   Categoria? @relation(fields: [categoriaId], references: [id])
-  updatedAt   DateTime   @updatedAt
-  estado      String     @default("Activo")  // 👈 Nuevo campo
   stock       Stock?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
-
 
 model Stock {
-  id        Int     @id @default(autoincrement())
-  equipoId  Int     @unique
-  cantidad  Int     @default(1)
-  equipo    Equipo  @relation(fields: [equipoId], references: [id])
+  id        Int      @id @default(autoincrement())
+  equipoId  Int      @unique
+  cantidad  Int      @default(1)
+  equipo    Equipo   @relation(fields: [equipoId], references: [id])
+  createdAt DateTime @default(now())
 }
-
 
 enum Role {
   ADMIN

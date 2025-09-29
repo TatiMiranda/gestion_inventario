@@ -5,7 +5,6 @@ import { PrismaClient } from "@prisma/client";
 
 // Rutas
 import authRoutes from "./routes/auth.js";
-import itemsRoutes from "./routes/items.js";
 import assignmentsRoutes from "./routes/assignments.js";
 import reportsRoutes from "./routes/reports.js";
 import stockRoutes from "./routes/stock.js";
@@ -21,7 +20,6 @@ app.use(express.json());
 
 // ✅ Rutas
 app.use("/api/auth", authRoutes);
-app.use("/api/items", itemsRoutes);
 app.use("/api/assignments", assignmentsRoutes);
 app.use("/api/reports", reportsRoutes);
 app.use("/api/stock", stockRoutes);

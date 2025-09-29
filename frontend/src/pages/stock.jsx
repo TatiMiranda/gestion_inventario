@@ -1,56 +1,87 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export default function Stock() {
-  const [equipos, setEquipos] = useState([]);
+  const [stock, setStock] = useState([]);
 
-  // 🔹 Cargar equipos desde la API
-  const fetchEquipos = async () => {
+  // 📌 Cargar stock desde la API
+  useEffect(() => {
+    fetch("http://localhost:4000/api/stock")
+      .then((res) => res.json())
+      .then((data) => setStock(data))
+      .catch((err) => console.error("❌ Error cargando stock:", err));
+  }, []);
+
+  // 📌 Cambiar estado del equipo
+  const handleEstadoChange = async (equipoId, nuevoEstado) => {
     try {
-      const res = await fetch("http://localhost:4000/api/equipos");
-      const data = await res.json();
-      setEquipos(data);
+      await fetch(`http://localhost:4000/api/stock/${equipoId}/estado`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ estado: nuevoEstado }),
+      });
+
+      // Actualizar el estado local
+      setStock((prev) =>
+        prev.map((s) =>
+          s.equipo.id === equipoId
+            ? { ...s, equipo: { ...s.equipo, estado: nuevoEstado } }
+            : s
+        )
+      );
     } catch (error) {
-      console.error("Error cargando equipos:", error);
+      console.error("❌ Error actualizando estado:", error);
     }
   };
 
-  useEffect(() => {
-    fetchEquipos();
-  }, []);
-
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold text-green-700 mb-6"> Stock de Equipos</h1>
+      <h1 className="text-3xl font-bold text-blue-700 mb-6">
+        📦 Stock de Equipos
+      </h1>
 
-      {equipos.length === 0 ? (
-        <p className="text-gray-500">No hay equipos registrados.</p>
+      {stock.length === 0 ? (
+        <p className="text-gray-500">No hay equipos en stock.</p>
       ) : (
-        <table className="w-full border rounded-lg overflow-hidden shadow">
-          <thead className="bg-green-100 text-green-700">
+        <table className="w-full border border-gray-300 rounded-lg shadow">
+          <thead className="bg-blue-600 text-white">
             <tr>
-              <th className="px-4 py-2 text-left">Nombre</th>
-              <th className="px-4 py-2 text-left">Código</th>
-              <th className="px-4 py-2 text-left">Estado</th>
-              <th className="px-4 py-2 text-left">Categoría</th>
+              <th className="p-2 text-left">Equipo</th>
+              <th className="p-2 text-left">Código</th>
+              <th className="p-2 text-left">Categoría</th>
+              <th className="p-2 text-left">Sede</th> {/* 🔹 nueva columna */}
+              <th className="p-2 text-center">Estado</th>
+              <th className="p-2 text-center">Cantidad</th>
             </tr>
           </thead>
           <tbody>
-            {equipos.map((eq) => (
-              <tr key={eq.id} className="border-t">
-                <td className="px-4 py-2">{eq.nombre}</td>
-                <td className="px-4 py-2">{eq.codigo}</td>
-                <td className="px-4 py-2">
-                  <span
-                    className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                      eq.estado === "Activo"
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
+            {stock.map((s) => (
+              <tr key={s.id} className="border-b hover:bg-gray-100">
+                <td className="p-2">{s.equipo?.nombre}</td>
+                <td className="p-2">{s.equipo?.codigo}</td>
+                <td className="p-2">
+                  {s.equipo?.categoria?.nombre || "Sin categoría"}
+                </td>
+                <td className="p-2">{s.equipo?.sede || "Sin sede"}</td> {/* 🔹 mostrar sede */}
+                <td className="p-2 text-center">
+                  <button
+                    onClick={() =>
+                      handleEstadoChange(
+                        s.equipo.id,
+                        s.equipo?.estado === "Activo"
+                          ? "Inactivo"
+                          : "Activo"
+                      )
+                    }
+                    className={`px-3 py-1 rounded-full text-xs font-semibold transition ${
+                      s.equipo?.estado === "Activo"
+                        ? "bg-green-200 text-green-800 hover:bg-green-300"
+                        : "bg-red-200 text-red-800 hover:bg-red-300"
                     }`}
                   >
-                    {eq.estado}
-                  </span>
+                    {s.equipo?.estado}
+                  </button>
                 </td>
-                <td className="px-4 py-2">{eq.categoria}</td>
+                <td className="p-2 text-center font-semibold">{s.cantidad}</td>
               </tr>
             ))}
           </tbody>

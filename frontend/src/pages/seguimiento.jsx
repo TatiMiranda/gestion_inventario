@@ -1,268 +1,109 @@
 import { useState, useEffect } from "react";
 
 export default function Seguimiento() {
-  const [seguimientos, setSeguimientos] = useState([]);
-  const [nuevo, setNuevo] = useState({
-    equipo: "",
-    sede: "",
-    estado: "",
-    fecha: "",
-  });
-  const [editando, setEditando] = useState(null);
-  const [formEdit, setFormEdit] = useState({});
-  const [mensaje, setMensaje] = useState("");
-  const [loading, setLoading] = useState(true);
+  const [equipos, setEquipos] = useState([]);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  // 🔹 Lista fija de sedes
-  const sedesDisponibles = [
-    "Manizales centro",
-    "Arboleda",
+  const [nombre, setNombre] = useState("");
+  const [sede, setSede] = useState(""); // 🔹 sede seleccionada
+
+  // 🔹 Sedes registradas (puedes cambiarlas según tu BD)
+  const sedes = [
+    "Bogotá",
+    "Medellín",
+    "Cali",
     "Avenida 30 de agosto",
-    "Campin",
-    "Dorado plaza",
-    "Panamericana",
   ];
 
-  // 🔹 Cargar seguimientos
-  const fetchSeguimientos = async () => {
+  const buscarEquipos = async () => {
+    setLoading(true);
+    setError("");
+
     try {
-      setLoading(true);
-      const res = await fetch("http://localhost:4000/api/seguimientos");
-      const data = await res.json();
-      setSeguimientos(data);
+      const response = await fetch(
+        `http://localhost:4000/api/equipos/seguimiento?nombre=${nombre}&sede=${sede}`
+      );
+
+      if (!response.ok) throw new Error("Error al cargar seguimientos");
+
+      const data = await response.json();
+      setEquipos(data);
     } catch (err) {
-      console.error("Error al cargar seguimientos:", err);
-      setMensaje("❌ Error al cargar seguimientos");
+      setError(err.message);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchSeguimientos();
-  }, []);
-
-  // 🔹 Crear seguimiento
-  const handleCrear = async (e) => {
-    e.preventDefault();
-    if (!nuevo.equipo || !nuevo.sede || !nuevo.estado || !nuevo.fecha) {
-      return setMensaje("⚠️ Completa todos los campos");
-    }
-
-    try {
-      const res = await fetch("http://localhost:4000/api/seguimientos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(nuevo),
-      });
-
-      const data = await res.json();
-      if (!data.error) {
-        setSeguimientos([...seguimientos, data]);
-        setNuevo({ equipo: "", sede: "", estado: "", fecha: "" });
-        setMensaje("✅ Seguimiento creado");
-      } else {
-        setMensaje(data.error);
-      }
-    } catch {
-      setMensaje("❌ Error al crear seguimiento");
-    }
-  };
-
-  // 🔹 Editar seguimiento
-  const handleEditar = async (id) => {
-    try {
-      const res = await fetch(`http://localhost:4000/api/seguimientos/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formEdit),
-      });
-
-      const data = await res.json();
-      if (!data.error) {
-        setSeguimientos(
-          seguimientos.map((s) => (s.id === id ? { ...s, ...formEdit } : s))
-        );
-        setEditando(null);
-        setFormEdit({});
-        setMensaje("✅ Seguimiento actualizado");
-      } else {
-        setMensaje(data.error);
-      }
-    } catch {
-      setMensaje("❌ Error al actualizar seguimiento");
-    }
-  };
-
-  // 🔹 Eliminar seguimiento
-  const handleEliminar = async (id) => {
-    if (!confirm("¿Seguro que deseas eliminar este seguimiento?")) return;
-
-    try {
-      const res = await fetch(`http://localhost:4000/api/seguimientos/${id}`, {
-        method: "DELETE",
-      });
-
-      const data = await res.json();
-      if (!data.error) {
-        setSeguimientos(seguimientos.filter((s) => s.id !== id));
-        setMensaje("🗑️ Seguimiento eliminado");
-      } else {
-        setMensaje(data.error);
-      }
-    } catch {
-      setMensaje("❌ Error al eliminar seguimiento");
-    }
-  };
+    buscarEquipos();
+  }, [nombre, sede]);
 
   return (
     <div className="p-6">
-      <h1 className="text-3xl font-bold text-blue-700 mb-6"> Seguimiento</h1>
+      <h2 className="text-2xl font-bold text-blue-600 mb-4">Seguimiento</h2>
 
-      {/* Mensaje */}
-      {mensaje && (
-        <div className="mb-4 p-2 bg-gray-100 border rounded text-sm text-gray-700">
-          {mensaje}
+      {error && (
+        <div className="bg-red-100 text-red-700 p-2 mb-4 rounded">
+          ❌ {error}
         </div>
       )}
 
-      {/* Crear seguimiento */}
-      <form onSubmit={handleCrear} className="grid grid-cols-4 gap-2 mb-6">
+      {/* Buscador */}
+      <div className="flex gap-2 mb-4">
         <input
           type="text"
-          value={nuevo.equipo}
-          onChange={(e) => setNuevo({ ...nuevo, equipo: e.target.value })}
-          placeholder="Equipo"
-          className="px-2 py-1 border rounded"
+          placeholder="Buscar equipo..."
+          value={nombre}
+          onChange={(e) => setNombre(e.target.value)}
+          className="flex-1 border rounded p-2"
         />
+
         <select
-          value={nuevo.sede}
-          onChange={(e) => setNuevo({ ...nuevo, sede: e.target.value })}
-          className="px-2 py-1 border rounded"
+          value={sede}
+          onChange={(e) => setSede(e.target.value)}
+          className="border rounded p-2"
         >
-          <option value="">Selecciona sede</option>
-          {sedesDisponibles.map((s) => (
-            <option key={s} value={s}>
+          <option value="">Todas las sedes</option>
+          {sedes.map((s, i) => (
+            <option key={i} value={s}>
               {s}
             </option>
           ))}
         </select>
-        <input
-          type="text"
-          value={nuevo.estado}
-          onChange={(e) => setNuevo({ ...nuevo, estado: e.target.value })}
-          placeholder="Estado"
-          className="px-2 py-1 border rounded"
-        />
-        <input
-          type="date"
-          value={nuevo.fecha}
-          onChange={(e) => setNuevo({ ...nuevo, fecha: e.target.value })}
-          className="px-2 py-1 border rounded"
-        />
-        <button
-          type="submit"
-          className="col-span-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-green-700"
-        >
-          Crear
-        </button>
-      </form>
+      </div>
 
-      {/* Listado */}
+      {/* Tabla de resultados */}
       {loading ? (
-        <p className="text-gray-500">⏳ Cargando seguimientos...</p>
-      ) : seguimientos.length === 0 ? (
-        <p className="text-gray-500">No hay seguimientos registrados.</p>
+        <p>Cargando...</p>
+      ) : equipos.length > 0 ? (
+        <table className="w-full border rounded shadow">
+          <thead>
+            <tr className="bg-blue-600 text-white">
+              <th className="p-2">Equipo</th>
+              <th className="p-2">Código</th>
+              <th className="p-2">Categoría</th>
+              <th className="p-2">Sede</th>
+              <th className="p-2">Estado</th>
+              <th className="p-2">Cantidad</th>
+            </tr>
+          </thead>
+          <tbody>
+            {equipos.map((eq) => (
+              <tr key={eq.id} className="border-b">
+                <td className="p-2">{eq.nombre}</td>
+                <td className="p-2">{eq.codigo}</td>
+                <td className="p-2">{eq.categoria?.nombre || "Sin categoría"}</td>
+                <td className="p-2">{eq.sede}</td>
+                <td className="p-2">{eq.estado}</td>
+                <td className="p-2">{eq.stock?.cantidad || 0}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       ) : (
-        <ul className="space-y-2">
-          {seguimientos.map((seg) => (
-            <li
-              key={seg.id}
-              className="flex justify-between items-center border p-2 rounded"
-            >
-              {editando === seg.id ? (
-                <div className="grid grid-cols-4 gap-2 w-full">
-                  <input
-                    type="text"
-                    value={formEdit.equipo || ""}
-                    onChange={(e) =>
-                      setFormEdit({ ...formEdit, equipo: e.target.value })
-                    }
-                    className="px-2 py-1 border rounded"
-                  />
-                  <select
-                    value={formEdit.sede || ""}
-                    onChange={(e) =>
-                      setFormEdit({ ...formEdit, sede: e.target.value })
-                    }
-                    className="px-2 py-1 border rounded"
-                  >
-                    <option value="">Selecciona sede</option>
-                    {sedesDisponibles.map((s) => (
-                      <option key={s} value={s}>
-                        {s}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="text"
-                    value={formEdit.estado || ""}
-                    onChange={(e) =>
-                      setFormEdit({ ...formEdit, estado: e.target.value })
-                    }
-                    className="px-2 py-1 border rounded"
-                  />
-                  <input
-                    type="date"
-                    value={formEdit.fecha || ""}
-                    onChange={(e) =>
-                      setFormEdit({ ...formEdit, fecha: e.target.value })
-                    }
-                    className="px-2 py-1 border rounded"
-                  />
-                  <div className="col-span-4 flex gap-2 mt-2">
-                    <button
-                      onClick={() => handleEditar(seg.id)}
-                      className="px-2 py-1 bg-blue-600 text-white rounded"
-                    >
-                      Guardar
-                    </button>
-                    <button
-                      onClick={() => setEditando(null)}
-                      className="px-2 py-1 bg-gray-400 text-white rounded"
-                    >
-                      Cancelar
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  <span>
-                    <strong>{seg.equipo}</strong> – {seg.sede} –{" "}
-                    <em>{seg.estado}</em> – 📅 {seg.fecha}
-                  </span>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => {
-                        setEditando(seg.id);
-                        setFormEdit(seg);
-                      }}
-                      className="px-2 py-1 bg-yellow-500 text-white rounded"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => handleEliminar(seg.id)}
-                      className="px-2 py-1 bg-red-600 text-white rounded"
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                </>
-              )}
-            </li>
-          ))}
-        </ul>
+        <p>No hay seguimientos registrados.</p>
       )}
     </div>
   );

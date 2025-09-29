@@ -1,8 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import {
   LayoutDashboard,
-  Boxes,
-  Tags,
   Laptop,
   MapPin,
   Activity,
@@ -16,10 +14,13 @@ export default function Layout() {
       {/* Sidebar */}
       <aside className="w-64 bg-gradient-to-b from-blue-500 via-blue-700 to-blue-900 text-white flex flex-col">
         {/* Logo */}
-        <div className="p-6 text-center border-b border-blue-400">
-          <h1 className="text-2xl font-bold">Inventario</h1>
+        <div className="p-6 text-center border-b border-blue-400 flex flex-col items-center">
+          <img
+            src="/logo_blanco.png" // 👈 coloca tu logo en frontend/public/logo.png
+            alt="Logo Inventario"
+           
+          />
         </div>
-
         {/* Menú */}
         <nav className="flex-1 p-4 space-y-2">
           <NavLink
@@ -31,28 +32,6 @@ export default function Layout() {
             }
           >
             <LayoutDashboard size={20} /> Dashboard
-          </NavLink>
-
-          <NavLink
-            to="/items"
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-2 rounded-lg transition ${
-                isActive ? "bg-blue-800 font-semibold" : "hover:bg-blue-600"
-              }`
-            }
-          >
-            <Boxes size={20} /> Items
-          </NavLink>
-
-          <NavLink
-            to="/categorias"
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-2 rounded-lg transition ${
-                isActive ? "bg-blue-800 font-semibold" : "hover:bg-blue-600"
-              }`
-            }
-          >
-            <Tags size={20} /> Categorías
           </NavLink>
 
           <NavLink
