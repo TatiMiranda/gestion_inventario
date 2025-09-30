@@ -2,16 +2,30 @@ import { useEffect, useState } from "react";
 
 export default function Stock() {
   const [stock, setStock] = useState([]);
+  const [sedes, setSedes] = useState([]);
+  const [sede, setSede] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [editando, setEditando] = useState(null); // 📌 equipo en edición
+  const [formEdit, setFormEdit] = useState({ nombre: "", codigo: "" });
 
   // 📌 Cargar stock desde la API
   useEffect(() => {
+    setLoading(true);
     fetch("http://localhost:4000/api/stock")
       .then((res) => res.json())
-      .then((data) => setStock(data))
-      .catch((err) => console.error("❌ Error cargando stock:", err));
+      .then((data) => {
+        setStock(data);
+
+        const sedesUnicas = [
+          ...new Set(data.map((s) => s.equipo?.sede || "Sin sede")),
+        ];
+        setSedes(sedesUnicas);
+      })
+      .catch((err) => console.error("❌ Error cargando stock:", err))
+      .finally(() => setLoading(false));
   }, []);
 
-  // 📌 Cambiar estado del equipo
+  // 📌 Cambiar estado
   const handleEstadoChange = async (equipoId, nuevoEstado) => {
     try {
       await fetch(`http://localhost:4000/api/stock/${equipoId}/estado`, {
@@ -20,7 +34,6 @@ export default function Stock() {
         body: JSON.stringify({ estado: nuevoEstado }),
       });
 
-      // Actualizar el estado local
       setStock((prev) =>
         prev.map((s) =>
           s.equipo.id === equipoId
@@ -33,13 +46,94 @@ export default function Stock() {
     }
   };
 
+  // 📌 Editar equipo
+  const handleEditar = (s) => {
+    setEditando(s.equipo.id);
+    setFormEdit({ nombre: s.equipo?.nombre, codigo: s.equipo?.codigo });
+  };
+
+  // 📌 Guardar edición en la BD
+  const handleGuardarEdicion = async (equipoId) => {
+    try {
+      console.log("Guardando edición", { equipoId, formEdit });
+
+      const res = await fetch(`http://localhost:4000/api/equipos/${equipoId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(formEdit),
+          });
+
+      const data = await res.json();
+      if (data.error) {
+        console.error("Error backend al editar equipo:", data.error);
+        alert(data.error);
+        return;
+      }
+
+      // ✅ Actualizar el estado local con lo que devuelve el backend
+      setStock((prev) =>
+        prev.map((s) =>
+          s.equipo.id === equipoId ? { ...s, equipo: data.equipo } : s
+        )
+      );
+
+      setEditando(null);
+      setFormEdit({ nombre: "", codigo: "" });
+    } catch (error) {
+      console.error("❌ Error al editar equipo:", error);
+      alert("Error de red al guardar la edición");
+    }
+  };
+
+  // 📌 Eliminar equipo
+  const handleEliminar = async (equipoId) => {
+    if (!confirm("¿Seguro que deseas eliminar este equipo?")) return;
+
+    try {
+      await fetch(`http://localhost:4000/api/equipos/${equipoId}`, {
+        method: "DELETE",
+      });
+
+      setStock((prev) => prev.filter((s) => s.equipo.id !== equipoId));
+    } catch (error) {
+      console.error("❌ Error eliminando equipo:", error);
+    }
+  };
+
+  // 📌 Filtrar por sede
+  const equiposFiltrados =
+    sede === "" ? stock : stock.filter((s) => s.equipo?.sede === sede);
+
   return (
     <div className="p-6">
       <h1 className="text-3xl font-bold text-blue-700 mb-6">
-        📦 Stock de Equipos
+        Stock de Equipos y Seguimiento
       </h1>
 
-      {stock.length === 0 ? (
+      {/* Filtro */}
+      <div className="mb-4 flex justify-end items-center gap-2">
+        <label htmlFor="sede" className="font-medium text-gray-700">
+          Filtrar por sede:
+        </label>
+        <select
+          id="sede"
+          value={sede}
+          onChange={(e) => setSede(e.target.value)}
+          className="border rounded p-2"
+        >
+          <option value="">Todas las sedes</option>
+          {sedes.map((s, i) => (
+            <option key={i} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Tabla */}
+      {loading ? (
+        <p className="text-gray-500">Cargando...</p>
+      ) : equiposFiltrados.length === 0 ? (
         <p className="text-gray-500">No hay equipos en stock.</p>
       ) : (
         <table className="w-full border border-gray-300 rounded-lg shadow">
@@ -48,28 +142,51 @@ export default function Stock() {
               <th className="p-2 text-left">Equipo</th>
               <th className="p-2 text-left">Código</th>
               <th className="p-2 text-left">Categoría</th>
-              <th className="p-2 text-left">Sede</th> {/* 🔹 nueva columna */}
+              <th className="p-2 text-left">Sede</th>
               <th className="p-2 text-center">Estado</th>
               <th className="p-2 text-center">Cantidad</th>
+              <th className="p-2 text-center">Acciones</th>
             </tr>
           </thead>
           <tbody>
-            {stock.map((s) => (
+            {equiposFiltrados.map((s) => (
               <tr key={s.id} className="border-b hover:bg-gray-100">
-                <td className="p-2">{s.equipo?.nombre}</td>
-                <td className="p-2">{s.equipo?.codigo}</td>
+                <td className="p-2">
+                  {editando === s.equipo.id ? (
+                    <input
+                      value={formEdit.nombre}
+                      onChange={(e) =>
+                        setFormEdit({ ...formEdit, nombre: e.target.value })
+                      }
+                      className="border p-1 rounded"
+                    />
+                  ) : (
+                    s.equipo?.nombre
+                  )}
+                </td>
+                <td className="p-2">
+                  {editando === s.equipo.id ? (
+                    <input
+                      value={formEdit.codigo}
+                      onChange={(e) =>
+                        setFormEdit({ ...formEdit, codigo: e.target.value })
+                      }
+                      className="border p-1 rounded"
+                    />
+                  ) : (
+                    s.equipo?.codigo
+                  )}
+                </td>
                 <td className="p-2">
                   {s.equipo?.categoria?.nombre || "Sin categoría"}
                 </td>
-                <td className="p-2">{s.equipo?.sede || "Sin sede"}</td> {/* 🔹 mostrar sede */}
+                <td className="p-2">{s.equipo?.sede || "Sin sede"}</td>
                 <td className="p-2 text-center">
                   <button
                     onClick={() =>
                       handleEstadoChange(
                         s.equipo.id,
-                        s.equipo?.estado === "Activo"
-                          ? "Inactivo"
-                          : "Activo"
+                        s.equipo?.estado === "Activo" ? "Inactivo" : "Activo"
                       )
                     }
                     className={`px-3 py-1 rounded-full text-xs font-semibold transition ${
@@ -82,6 +199,39 @@ export default function Stock() {
                   </button>
                 </td>
                 <td className="p-2 text-center font-semibold">{s.cantidad}</td>
+                <td className="p-2 text-center flex gap-2 justify-center">
+                  {editando === s.equipo.id ? (
+                    <>
+                      <button
+                        onClick={() => handleGuardarEdicion(s.equipo.id)}
+                        className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
+                      >
+                        Guardar
+                      </button>
+                      <button
+                        onClick={() => setEditando(null)}
+                        className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500"
+                      >
+                        Cancelar
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button
+                        onClick={() => handleEditar(s)}
+                        className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                      >
+                        Editar
+                      </button>
+                      <button
+                        onClick={() => handleEliminar(s.equipo.id)}
+                        className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+                      >
+                        Eliminar
+                      </button>
+                    </>
+                  )}
+                </td>
               </tr>
             ))}
           </tbody>

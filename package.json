@@ -1,0 +1,20 @@
+{
+  "name": "gestion_inventario",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TatiMiranda/gestion_inventario.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/TatiMiranda/gestion_inventario/issues"
+  },
+  "homepage": "https://github.com/TatiMiranda/gestion_inventario#readme"
+}

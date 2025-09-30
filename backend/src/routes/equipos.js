@@ -6,20 +6,17 @@ const prisma = new PrismaClient();
 
 // 📌 Crear equipo con stock inicial
 router.post("/", async (req, res) => {
-  const { nombre, codigo, estado, categoria, sede } = req.body; // 👈 ahora recibimos sede
+  const { nombre, codigo, estado, categoria, sede } = req.body;
 
   try {
-    // 🔹 Si el usuario eligió categoría desde el frontend, usarla
     let categoriaNombre = categoria || "Otro";
 
-    // 🔹 Si no viene categoría explícita, detectarla automáticamente
     if (!categoria) {
       if (nombre.toLowerCase().includes("gabinete")) categoriaNombre = "Gabinete";
       else if (nombre.toLowerCase().includes("monitor")) categoriaNombre = "Monitor";
       else if (nombre.toLowerCase().includes("diadema")) categoriaNombre = "Diadema";
     }
 
-    // 🔹 Buscar o crear categoría
     let categoriaDb = await prisma.categoria.findUnique({
       where: { nombre: categoriaNombre },
     });
@@ -30,20 +27,17 @@ router.post("/", async (req, res) => {
       });
     }
 
-    // 📌 Crear equipo y stock inicial dentro de una transacción
     const result = await prisma.$transaction(async (tx) => {
-      // crear equipo con sede
       const createdEquipo = await tx.equipo.create({
         data: {
           nombre,
           codigo,
           estado: estado || "Activo",
-          sede: sede || "Sin sede", // 👈 guardar sede
+          sede: sede || "Sin sede",
           categoriaId: categoriaDb.id,
         },
       });
 
-      // crear stock inicial
       await tx.stock.create({
         data: {
           equipoId: createdEquipo.id,
@@ -51,7 +45,6 @@ router.post("/", async (req, res) => {
         },
       });
 
-      // 🔹 volver a consultar el equipo ya con sus relaciones
       const equipoConTodo = await tx.equipo.findUnique({
         where: { id: createdEquipo.id },
         include: { categoria: true, stock: true },
@@ -93,7 +86,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-// 📌 Buscar equipos por sede y nombre (para módulo Seguimiento básico)
+// 📌 Buscar equipos por sede y nombre
 router.get("/buscar", async (req, res) => {
   const { sede, nombre } = req.query;
 
@@ -115,7 +108,7 @@ router.get("/buscar", async (req, res) => {
   }
 });
 
-// 📌 Seguimiento: Buscar equipos por sede y nombre (SOLO los que tienen stock)
+// 📌 Seguimiento: Buscar solo equipos con stock
 router.get("/seguimiento", async (req, res) => {
   const { sede, nombre } = req.query;
 
@@ -130,7 +123,6 @@ router.get("/seguimiento", async (req, res) => {
       include: { categoria: true, stock: true },
     });
 
-    // 🔹 Filtrar los que realmente tengan stock
     const equiposConStock = equipos.filter(
       (eq) => eq.stock && eq.stock.cantidad > 0
     );
@@ -142,17 +134,23 @@ router.get("/seguimiento", async (req, res) => {
   }
 });
 
-// 📌 Eliminar equipo por ID
+// 📌 Eliminar equipo y su stock
 router.delete("/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
+    // 1. Eliminar el stock primero
+    await prisma.stock.deleteMany({
+      where: { equipoId: Number(id) },
+    });
+
+    // 2. Eliminar el equipo
     const deletedEquipo = await prisma.equipo.delete({
       where: { id: Number(id) },
     });
 
     return res.status(200).json({
-      message: `🗑️ Equipo "${deletedEquipo.nombre}" eliminado correctamente.`,
+      message: `🗑️ Equipo "${deletedEquipo.nombre}" y su stock eliminado correctamente.`,
       deletedEquipo,
     });
   } catch (error) {
@@ -166,6 +164,65 @@ router.delete("/:id", async (req, res) => {
     }
 
     return res.status(500).json({ error: "❌ Error al eliminar equipo." });
+  }
+});
+
+// 📌 Actualizar datos del equipo
+router.put("/equipo/:id", async (req, res) => {
+  const { id } = req.params;
+  const { nombre, codigo, estado, sede } = req.body;
+
+  try {
+    const updatedEquipo = await prisma.equipo.update({
+      where: { id: Number(id) },
+      data: {
+        ...(nombre && { nombre }),
+        ...(codigo && { codigo }),
+        ...(estado && { estado }),
+        ...(sede && { sede }),
+      },
+      include: { categoria: true, stock: true },
+    });
+
+    return res.json({
+      message: `✏️ Equipo "${updatedEquipo.nombre}" actualizado correctamente.`,
+      equipo: updatedEquipo,
+    });
+  } catch (error) {
+    console.error("❌ Error al actualizar equipo:", error);
+
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      return res.status(404).json({ error: "❌ Equipo no encontrado." });
+    }
+
+    return res.status(500).json({ error: "❌ Error al actualizar equipo." });
+  }
+});
+
+// 📌 Cambiar estado del equipo
+router.put("/:id/estado", async (req, res) => {
+  const { id } = req.params;
+  let { estado } = req.body;
+
+  if (estado === true) estado = "Activo";
+  if (estado === false) estado = "Inactivo";
+
+  try {
+    const updatedEquipo = await prisma.equipo.update({
+      where: { id: Number(id) },
+      data: { estado },
+    });
+
+    return res.json({
+      message: `🔄 Estado actualizado a "${estado}" para el equipo "${updatedEquipo.nombre}".`,
+      equipo: updatedEquipo,
+    });
+  } catch (error) {
+    console.error("❌ Error al cambiar estado del equipo:", error);
+    return res.status(500).json({ error: "❌ Error al cambiar estado del equipo." });
   }
 });
 

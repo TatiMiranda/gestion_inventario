@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { NavLink, Outlet, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   Laptop,
@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 export default function Layout() {
+  const location = useLocation();
   return (
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
@@ -57,17 +58,6 @@ export default function Layout() {
           </NavLink>
 
           <NavLink
-            to="/seguimiento"
-            className={({ isActive }) =>
-              `flex items-center gap-3 px-4 py-2 rounded-lg transition ${
-                isActive ? "bg-blue-800 font-semibold" : "hover:bg-blue-600"
-              }`
-            }
-          >
-            <Activity size={20} /> Seguimiento
-          </NavLink>
-
-          <NavLink
             to="/stock"
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-2 rounded-lg transition ${
@@ -92,7 +82,10 @@ export default function Layout() {
         {/* Header */}
         <header className="bg-white shadow p-4 flex justify-between items-center">
           <h2 className="text-xl font-semibold text-gray-700">Panel de control</h2>
-          <span className="text-gray-500 text-sm">Usuario: admin@correo.com</span>
+          <div className="flex items-center gap-4">
+            <span className="text-gray-500 text-sm">Usuario: admin@correo.com</span>
+            <span className="text-xs text-gray-400">Ruta: {location.pathname}</span>
+          </div>
         </header>
 
         {/* Contenido dinámico */}

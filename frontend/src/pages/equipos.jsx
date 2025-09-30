@@ -118,6 +118,22 @@ export default function Equipos() {
           <option value="Panamericana">Panamericana</option>
         </select>
 
+        <select
+           value={sede}
+            onChange={(e) => setSede(e.target.value)}
+            className="w-full px-4 py-2 rounded-lg border"
+            required
+          >
+            <option value="">Selecciona en que piso esta el equipo</option>
+            <option value="Piso 1">Piso 1</option>
+            <option value="Piso 1">Piso 1 - Administración</option>
+            <option value="Piso 1">Piso 1 - Administración</option>
+            <option value="Piso 2">Piso 2</option>
+            <option value="Piso 3">Piso 3</option>
+            <option value="Piso 4">Piso 4</option>
+            <option value="Piso 5">salas de formación</option>
+          </select>
+
         <button
           type="submit"
           className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700"
