@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 
 // 📌 Crear equipo con stock inicial
 router.post("/", async (req, res) => {
-  const { nombre, codigo, estado, categoria, sede } = req.body;
+  const { nombre, codigo, estado, categoria, sede, piso } = req.body;
 
   try {
     let categoriaNombre = categoria || "Otro";
@@ -34,6 +34,7 @@ router.post("/", async (req, res) => {
           codigo,
           estado: estado || "Activo",
           sede: sede || "Sin sede",
+          piso: piso || "Sin piso",
           categoriaId: categoriaDb.id,
         },
       });
@@ -45,16 +46,14 @@ router.post("/", async (req, res) => {
         },
       });
 
-      const equipoConTodo = await tx.equipo.findUnique({
+      return await tx.equipo.findUnique({
         where: { id: createdEquipo.id },
         include: { categoria: true, stock: true },
       });
-
-      return equipoConTodo;
     });
 
     return res.status(201).json({
-      message: `✅ Equipo "${result.nombre}" registrado en categoría "${categoriaDb.nombre}" con sede "${result.sede}" y stock inicial.`,
+      message: `✅ Equipo "${result.nombre}" registrado en categoría "${categoriaDb.nombre}" en sede "${result.sede}" - ${result.piso} con stock inicial.`,
       equipo: result,
     });
   } catch (error) {
@@ -73,104 +72,10 @@ router.post("/", async (req, res) => {
   }
 });
 
-// 📌 Listar todos los equipos
-router.get("/", async (req, res) => {
-  try {
-    const equipos = await prisma.equipo.findMany({
-      include: { categoria: true, stock: true },
-    });
-    return res.json(equipos);
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "❌ Error al obtener equipos." });
-  }
-});
-
-// 📌 Buscar equipos por sede y nombre
-router.get("/buscar", async (req, res) => {
-  const { sede, nombre } = req.query;
-
-  try {
-    const equipos = await prisma.equipo.findMany({
-      where: {
-        AND: [
-          sede ? { sede: { equals: sede } } : {},
-          nombre ? { nombre: { contains: nombre, mode: "insensitive" } } : {},
-        ],
-      },
-      include: { categoria: true, stock: true },
-    });
-
-    return res.json(equipos);
-  } catch (error) {
-    console.error("Error al buscar equipos:", error);
-    return res.status(500).json({ error: "❌ Error al buscar equipos." });
-  }
-});
-
-// 📌 Seguimiento: Buscar solo equipos con stock
-router.get("/seguimiento", async (req, res) => {
-  const { sede, nombre } = req.query;
-
-  try {
-    const equipos = await prisma.equipo.findMany({
-      where: {
-        AND: [
-          sede ? { sede: { equals: sede } } : {},
-          nombre ? { nombre: { contains: nombre, mode: "insensitive" } } : {},
-        ],
-      },
-      include: { categoria: true, stock: true },
-    });
-
-    const equiposConStock = equipos.filter(
-      (eq) => eq.stock && eq.stock.cantidad > 0
-    );
-
-    return res.json(equiposConStock);
-  } catch (error) {
-    console.error("Error en seguimiento:", error);
-    return res.status(500).json({ error: "❌ Error al obtener seguimiento." });
-  }
-});
-
-// 📌 Eliminar equipo y su stock
-router.delete("/:id", async (req, res) => {
-  const { id } = req.params;
-
-  try {
-    // 1. Eliminar el stock primero
-    await prisma.stock.deleteMany({
-      where: { equipoId: Number(id) },
-    });
-
-    // 2. Eliminar el equipo
-    const deletedEquipo = await prisma.equipo.delete({
-      where: { id: Number(id) },
-    });
-
-    return res.status(200).json({
-      message: `🗑️ Equipo "${deletedEquipo.nombre}" y su stock eliminado correctamente.`,
-      deletedEquipo,
-    });
-  } catch (error) {
-    console.error(error);
-
-    if (
-      error instanceof Prisma.PrismaClientKnownRequestError &&
-      error.code === "P2025"
-    ) {
-      return res.status(404).json({ error: "❌ Equipo no encontrado." });
-    }
-
-    return res.status(500).json({ error: "❌ Error al eliminar equipo." });
-  }
-});
-
 // 📌 Actualizar datos del equipo
-router.put("/equipo/:id", async (req, res) => {
+router.put("/:id", async (req, res) => {
   const { id } = req.params;
-  const { nombre, codigo, estado, sede } = req.body;
+  const { nombre, codigo, estado, sede, piso } = req.body;
 
   try {
     const updatedEquipo = await prisma.equipo.update({
@@ -180,6 +85,7 @@ router.put("/equipo/:id", async (req, res) => {
         ...(codigo && { codigo }),
         ...(estado && { estado }),
         ...(sede && { sede }),
+        ...(piso && { piso }),
       },
       include: { categoria: true, stock: true },
     });
@@ -202,28 +108,33 @@ router.put("/equipo/:id", async (req, res) => {
   }
 });
 
-// 📌 Cambiar estado del equipo
-router.put("/:id/estado", async (req, res) => {
-  const { id } = req.params;
-  let { estado } = req.body;
-
-  if (estado === true) estado = "Activo";
-  if (estado === false) estado = "Inactivo";
-
+// 📌 Obtener todos los equipos
+router.get("/", async (req, res) => {
   try {
-    const updatedEquipo = await prisma.equipo.update({
-      where: { id: Number(id) },
-      data: { estado },
+    const equipos = await prisma.equipo.findMany({
+      include: { categoria: true, stock: true },
     });
-
-    return res.json({
-      message: `🔄 Estado actualizado a "${estado}" para el equipo "${updatedEquipo.nombre}".`,
-      equipo: updatedEquipo,
-    });
+    res.json(equipos);
   } catch (error) {
-    console.error("❌ Error al cambiar estado del equipo:", error);
-    return res.status(500).json({ error: "❌ Error al cambiar estado del equipo." });
+    console.error("❌ Error al obtener equipos:", error);
+    res.status(500).json({ error: "❌ Error al obtener equipos." });
   }
 });
 
+// 📌 Eliminar equipo
+router.delete("/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    await prisma.stock.deleteMany({ where: { equipoId: Number(id) } });
+    await prisma.equipo.delete({ where: { id: Number(id) } });
+
+    return res.json({ message: "🗑️ Equipo eliminado correctamente." });
+  } catch (error) {
+    console.error("❌ Error al eliminar equipo:", error);
+    return res.status(500).json({ error: "❌ Error al eliminar equipo." });
+  }
+});
+
+// ✅ Exportación por defecto
 export default router;

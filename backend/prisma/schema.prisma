@@ -50,6 +50,7 @@ model Equipo {
   codigo      String     @unique
   estado      String     @default("Activo")
   sede        String?    // 🔹 Campo opcional de sede
+  piso        String    @default("Sin piso") // 🔹 Nuevo campo
   categoriaId Int?
   categoria   Categoria? @relation(fields: [categoriaId], references: [id])
   stock       Stock?

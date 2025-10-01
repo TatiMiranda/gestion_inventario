@@ -5,7 +5,7 @@ export default function Stock() {
   const [sedes, setSedes] = useState([]);
   const [sede, setSede] = useState("");
   const [loading, setLoading] = useState(true);
-  const [editando, setEditando] = useState(null); // 📌 equipo en edición
+  const [editando, setEditando] = useState(null);
   const [formEdit, setFormEdit] = useState({ nombre: "", codigo: "" });
 
   // 📌 Cargar stock desde la API
@@ -14,6 +14,7 @@ export default function Stock() {
     fetch("http://localhost:4000/api/stock")
       .then((res) => res.json())
       .then((data) => {
+        console.log("📦 Datos cargados:", data);
         setStock(data);
 
         const sedesUnicas = [
@@ -28,11 +29,13 @@ export default function Stock() {
   // 📌 Cambiar estado
   const handleEstadoChange = async (equipoId, nuevoEstado) => {
     try {
-      await fetch(`http://localhost:4000/api/stock/${equipoId}/estado`, {
+      const res = await fetch(`http://localhost:4000/api/equipos/${equipoId}/estado`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ estado: nuevoEstado }),
       });
+
+      if (!res.ok) throw new Error("Error al actualizar estado");
 
       setStock((prev) =>
         prev.map((s) =>
@@ -43,60 +46,90 @@ export default function Stock() {
       );
     } catch (error) {
       console.error("❌ Error actualizando estado:", error);
+      alert("Error al actualizar el estado");
     }
   };
 
   // 📌 Editar equipo
   const handleEditar = (s) => {
     setEditando(s.equipo.id);
-    setFormEdit({ nombre: s.equipo?.nombre, codigo: s.equipo?.codigo });
+    setFormEdit({ nombre: s.equipo?.nombre || "", codigo: s.equipo?.codigo || "" });
   };
 
   // 📌 Guardar edición en la BD
   const handleGuardarEdicion = async (equipoId) => {
     try {
-      console.log("Guardando edición", { equipoId, formEdit });
+      console.log("💾 Guardando edición", { equipoId, formEdit });
 
-      const res = await fetch(`http://localhost:4000/api/equipos/${equipoId}`, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(formEdit),
-          });
+      // ✅ Ruta correcta según tu backend: /api/equipos/equipo/:id
+      const res = await fetch(`http://localhost:4000/api/equipos/equipo/${equipoId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formEdit),
+      });
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("❌ Error del servidor:", errorText);
+        throw new Error(`Error HTTP: ${res.status}`);
+      }
 
       const data = await res.json();
+      console.log("✅ Respuesta del servidor:", data);
+
       if (data.error) {
-        console.error("Error backend al editar equipo:", data.error);
         alert(data.error);
         return;
       }
 
-      // ✅ Actualizar el estado local con lo que devuelve el backend
+      // ✅ Actualizar el estado local con la respuesta del backend
       setStock((prev) =>
-        prev.map((s) =>
-          s.equipo.id === equipoId ? { ...s, equipo: data.equipo } : s
-        )
+        prev.map((s) => {
+          if (s.equipo.id === equipoId) {
+            return {
+              ...s,
+              equipo: data.equipo // El backend ya devuelve el equipo completo con categoría y stock
+            };
+          }
+          return s;
+        })
       );
 
       setEditando(null);
       setFormEdit({ nombre: "", codigo: "" });
+      alert("✅ Equipo actualizado correctamente");
     } catch (error) {
-      console.error("❌ Error al editar equipo:", error);
-      alert("Error de red al guardar la edición");
+      console.error("⚠️ Error al editar equipo:", error);
+      alert(`Error al guardar: ${error.message}`);
     }
   };
 
   // 📌 Eliminar equipo
   const handleEliminar = async (equipoId) => {
-    if (!confirm("¿Seguro que deseas eliminar este equipo?")) return;
+    if (!window.confirm("¿Seguro que deseas eliminar este equipo?")) return;
 
     try {
-      await fetch(`http://localhost:4000/api/equipos/${equipoId}`, {
+      console.log("🗑️ Eliminando equipo:", equipoId);
+
+      const res = await fetch(`http://localhost:4000/api/equipos/equipo/${equipoId}`, {
         method: "DELETE",
       });
 
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("❌ Error del servidor:", errorText);
+        throw new Error(`Error HTTP: ${res.status}`);
+      }
+
+      console.log("✅ Equipo eliminado del servidor");
+
+      // ✅ Filtrar correctamente por el ID del equipo
       setStock((prev) => prev.filter((s) => s.equipo.id !== equipoId));
+      
+      alert("✅ Equipo eliminado correctamente");
     } catch (error) {
-      console.error("❌ Error eliminando equipo:", error);
+      console.error("⚠️ Error eliminando equipo:", error);
+      alert(`Error al eliminar: ${error.message}`);
     }
   };
 
@@ -134,7 +167,7 @@ export default function Stock() {
       {loading ? (
         <p className="text-gray-500">Cargando...</p>
       ) : equiposFiltrados.length === 0 ? (
-        <p className="text-gray-500">No hay equipos en stock.</p>
+        <p className="text-gray-500">⚠️ No hay equipos en stock.</p>
       ) : (
         <table className="w-full border border-gray-300 rounded-lg shadow">
           <thead className="bg-blue-600 text-white">
@@ -144,7 +177,7 @@ export default function Stock() {
               <th className="p-2 text-left">Categoría</th>
               <th className="p-2 text-left">Sede</th>
               <th className="p-2 text-center">Estado</th>
-              <th className="p-2 text-center">Cantidad</th>
+              <th className="p-2 text-center">Cantidad</th> 
               <th className="p-2 text-center">Acciones</th>
             </tr>
           </thead>
@@ -158,7 +191,7 @@ export default function Stock() {
                       onChange={(e) =>
                         setFormEdit({ ...formEdit, nombre: e.target.value })
                       }
-                      className="border p-1 rounded"
+                      className="border p-1 rounded w-full"
                     />
                   ) : (
                     s.equipo?.nombre
@@ -171,7 +204,7 @@ export default function Stock() {
                       onChange={(e) =>
                         setFormEdit({ ...formEdit, codigo: e.target.value })
                       }
-                      className="border p-1 rounded"
+                      className="border p-1 rounded w-full"
                     />
                   ) : (
                     s.equipo?.codigo
@@ -199,38 +232,43 @@ export default function Stock() {
                   </button>
                 </td>
                 <td className="p-2 text-center font-semibold">{s.cantidad}</td>
-                <td className="p-2 text-center flex gap-2 justify-center">
-                  {editando === s.equipo.id ? (
-                    <>
-                      <button
-                        onClick={() => handleGuardarEdicion(s.equipo.id)}
-                        className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700"
-                      >
-                        Guardar
-                      </button>
-                      <button
-                        onClick={() => setEditando(null)}
-                        className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500"
-                      >
-                        Cancelar
-                      </button>
-                    </>
-                  ) : (
-                    <>
-                      <button
-                        onClick={() => handleEditar(s)}
-                        className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => handleEliminar(s.equipo.id)}
-                        className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
-                      >
-                        Eliminar
-                      </button>
-                    </>
-                  )}
+                <td className="p-2 text-center">
+                  <div className="flex gap-2 justify-center">
+                    {editando === s.equipo.id ? (
+                      <>
+                        <button
+                          onClick={() => handleGuardarEdicion(s.equipo.id)}
+                          className="px-3 py-1 bg-green-600 text-white rounded hover:bg-green-700 transition"
+                        >
+                          Guardar
+                        </button>
+                        <button
+                          onClick={() => {
+                            setEditando(null);
+                            setFormEdit({ nombre: "", codigo: "" });
+                          }}
+                          className="px-3 py-1 bg-gray-400 text-white rounded hover:bg-gray-500 transition"
+                        >
+                          Cancelar
+                        </button>
+                      </>
+                    ) : (
+                      <>
+                        <button
+                          onClick={() => handleEditar(s)}
+                          className="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 transition"
+                        >
+                          Editar
+                        </button>
+                        <button
+                          onClick={() => handleEliminar(s.equipo.id)}
+                          className="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition"
+                        >
+                          Eliminar
+                        </button>
+                      </>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}

@@ -1,77 +1,100 @@
-import { motion } from "framer-motion";
-import { LayoutDashboard, Package, Tags, Laptop } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Package, Layers, MapPin } from "lucide-react";
 
 export default function Dashboard() {
+  const [stock, setStock] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [sedesConEquipos, setSedesConEquipos] = useState([]);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch("http://localhost:4000/api/stock")
+      .then((res) => res.json())
+      .then((data) => {
+        console.log("📦 Datos cargados para Dashboard:", data);
+        setStock(data);
+
+        // Agrupar equipos por sede
+        const sedesAgrupadas = {};
+        data.forEach((s) => {
+          const sede = s.equipo?.sede || "Sin sede";
+          sedesAgrupadas[sede] =
+            (sedesAgrupadas[sede] || 0) + (s.cantidad || 0);
+        });
+
+        const listaSedes = Object.entries(sedesAgrupadas).map(([sede, total]) => ({
+          sede,
+          total,
+        }));
+
+        setSedesConEquipos(listaSedes);
+      })
+      .catch((err) => console.error("❌ Error cargando stock:", err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  // ✅ Calcular métricas generales
+  const totalEquipos = stock.reduce((acc, s) => acc + (s.cantidad || 0), 0);
+
+  const categoriasUnicas = [
+    ...new Set(stock.map((s) => s.equipo?.categoria?.nombre || "Sin categoría")),
+  ];
+  const totalCategorias = categoriasUnicas.length;
+
+  const totalSedes = sedesConEquipos.length;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-100 via-blue-200 to-blue-400 flex items-center justify-center px-6">
-      <motion.div
-        initial={{ opacity: 0, y: 30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.8 }}
-        className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-5xl"
-      >
-        {/* Header */}
-        <div className="text-center mb-10">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.6 }}
-            className="flex items-center justify-center mb-4"
-          >
-            <LayoutDashboard className="w-12 h-12 text-blue-600" />
-          </motion.div>
-          <h1 className="text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-700">
-            Dashboard
-          </h1>
-          <p className="text-gray-600 mt-3 text-lg">
-            Bienvenido al panel de control 👋
-          </p>
+    <div className="p-8 bg-gray-50 min-h-screen">
+      <h1 className="text-5xl font-bold text-blue-700 mb-10 mt-10 text-center">
+         Dashboard General
+      </h1>
+
+      {/* Cards principales */}
+      <div className="grid md:grid-cols-3 gap-8 mb-10">
+        {/* Card Equipos */}
+        <div className="relative p-6 rounded-2xl bg-white shadow-lg overflow-hidden group">
+          <div className="absolute inset-0 rounded-2xl border-4 border-transparent bg-gradient-to-r from-blue-300 via-blue-400 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative flex items-center gap-4">
+            <div className="p-4 rounded-full bg-blue-100 text-blue-600">
+              <Package size={32} />
+            </div>
+            <div>
+              <h2 className="text-lg font-medium text-black-600">
+                Equipos en Stock
+              </h2>
+              <p className="text-4xl font-bold text-blue-700">{totalEquipos}</p>
+            </div>
+          </div>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {/* Card 1 */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="p-6 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-2xl shadow-xl text-center flex flex-col items-center"
-          >
-            <Package className="w-10 h-10 mb-3 opacity-80" />
-            <h2 className="text-3xl font-bold">120</h2>
-            <p className="mt-2 text-sm uppercase tracking-wide">
-              Equipos en Inventario
-            </p>
-          </motion.div>
-
-          {/* Card 2 */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="p-6 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-2xl shadow-xl text-center flex flex-col items-center"
-          >
-            <Tags className="w-10 h-10 mb-3 opacity-80" />
-            <h2 className="text-3xl font-bold">8</h2>
-            <p className="mt-2 text-sm uppercase tracking-wide">
-              Categorías activas
-            </p>
-          </motion.div>
-
-          {/* Card 3 */}
-          <motion.div
-            whileHover={{ scale: 1.05 }}
-            className="p-6 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-2xl shadow-xl text-center flex flex-col items-center"
-          >
-            <Laptop className="w-10 h-10 mb-3 opacity-80" />
-            <h2 className="text-3xl font-bold">35</h2>
-            <p className="mt-2 text-sm uppercase tracking-wide">
-              Equipos asignados
-            </p>
-          </motion.div>
+        {/* Card Categorías */}
+        <div className="relative p-6 rounded-2xl bg-white shadow-lg overflow-hidden group">
+          <div className="absolute inset-0 rounded-2xl border-4 border-transparent bg-gradient-to-r from-blue-300 via-blue-400 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative flex items-center gap-4">
+            <div className="p-4 rounded-full bg-green-100 text-green-600">
+              <Layers size={32} />
+            </div>
+            <div>
+              <h2 className="text-lg font-medium text-black-600">Categorías</h2>
+              <p className="text-4xl font-bold text-green-700">{totalCategorias}</p>
+            </div>
+          </div>
         </div>
 
-        {/* Footer */}
-        <div className="mt-10 text-center text-sm text-gray-500">
-          © 2025 ABAl Inventario - Panel de Control
+        {/* Card Total Sedes */}
+        <div className="relative p-6 rounded-2xl bg-white shadow-lg overflow-hidden group">
+          <div className="absolute inset-0 rounded-2xl border-4 border-transparent bg-gradient-to-r from-blue-300 via-blue-400 to-blue-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+          <div className="relative flex items-center gap-4">
+            <div className="p-4 rounded-full bg-pink-100 text-pink-600">
+              <MapPin size={32} />
+            </div>
+            <div>
+              <h2 className="text-lg font-medium text-black-600">Sedes Totales</h2>
+              <p className="text-4xl font-bold text-pink-700">{totalSedes}</p>
+            </div>
+          </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }

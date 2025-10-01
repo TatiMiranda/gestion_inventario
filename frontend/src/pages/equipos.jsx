@@ -6,21 +6,24 @@ export default function Equipos() {
   const [codigo, setCodigo] = useState("");
   const [estado, setEstado] = useState("Activo");
   const [categoria, setCategoria] = useState("");
-  const [sede, setSede] = useState(""); // 🔹 Nuevo estado para sede
+  const [sede, setSede] = useState("");
+  const [piso, setPiso] = useState(""); // 🔹 Nuevo estado para piso
 
   // 📌 Cargar equipos al iniciar
   useEffect(() => {
     fetch("http://localhost:4000/api/equipos")
       .then((res) => res.json())
       .then((data) => setEquipos(data))
-      .catch((err) => console.error("Error cargando equipos:", err));
+      .catch((err) => console.error("⚠️ Error cargando equipos:", err));
   }, []);
 
   // 📌 Registrar equipo
   const handleAdd = async (e) => {
     e.preventDefault();
 
-    if (!nombre || !codigo || !sede) return alert("Completa todos los campos");
+    if (!nombre || !codigo || !sede || !piso) {
+      return alert("Completa todos los campos obligatorios");
+    }
 
     try {
       const res = await fetch("http://localhost:4000/api/equipos", {
@@ -31,7 +34,8 @@ export default function Equipos() {
           codigo,
           estado,
           categoria: categoria || null,
-          sede, // 🔹 enviamos sede al backend
+          sede,
+          piso, // 🔹 enviamos piso al backend
         }),
       });
 
@@ -44,14 +48,15 @@ export default function Equipos() {
         setCodigo("");
         setEstado("Activo");
         setCategoria("");
-        setSede(""); // 🔹 limpiar sede
+        setSede("");
+        setPiso(""); // 🔹 limpiar piso
         alert("✅ Equipo registrado correctamente");
       } else {
         alert(data.error);
       }
     } catch (err) {
       console.error("❌ Error registrando equipo:", err);
-      alert("Error de red o backend caído");
+      alert("⚠️ Error de red o backend caído");
     }
   };
 
@@ -102,7 +107,7 @@ export default function Equipos() {
           <option value="Otro">Otro</option>
         </select>
 
-        {/* 🔹 Nuevo select para sede */}
+        {/* 🔹 Select para sede */}
         <select
           value={sede}
           onChange={(e) => setSede(e.target.value)}
@@ -118,21 +123,22 @@ export default function Equipos() {
           <option value="Panamericana">Panamericana</option>
         </select>
 
+        {/* 🔹 Select para piso */}
         <select
-           value={sede}
-            onChange={(e) => setSede(e.target.value)}
-            className="w-full px-4 py-2 rounded-lg border"
-            required
-          >
-            <option value="">Selecciona en que piso esta el equipo</option>
-            <option value="Piso 1">Piso 1</option>
-            <option value="Piso 1">Piso 1 - Administración</option>
-            <option value="Piso 1">Piso 1 - Administración</option>
-            <option value="Piso 2">Piso 2</option>
-            <option value="Piso 3">Piso 3</option>
-            <option value="Piso 4">Piso 4</option>
-            <option value="Piso 5">salas de formación</option>
-          </select>
+          value={piso}
+          onChange={(e) => setPiso(e.target.value)}
+          className="w-full px-4 py-2 rounded-lg border"
+          required
+        >
+          <option value="">Selecciona en qué piso está el equipo</option>
+          <option value="Piso 1">Piso 1</option>
+          <option value="Piso 1 - Administracion">Piso 1 - Administración</option>
+          <option value="Piso 2">Piso 2</option>
+          <option value="Piso 3">Piso 3</option>
+          <option value="Piso 4">Piso 4</option>
+          <option value="Piso 5">Piso 5</option>
+          <option value="Salas de formación">Salas de formación</option>
+        </select>
 
         <button
           type="submit"
