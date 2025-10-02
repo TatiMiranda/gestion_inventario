@@ -108,6 +108,36 @@ router.put("/:id", async (req, res) => {
   }
 });
 
+// 📌 Cambiar solo el estado del equipo
+router.put("/:id/estado", async (req, res) => {
+  const { id } = req.params;
+  const { estado } = req.body;
+
+  try {
+    const updatedEquipo = await prisma.equipo.update({
+      where: { id: Number(id) },
+      data: { estado },
+      include: { categoria: true, stock: true },
+    });
+
+    return res.json({
+      message: `✅ Estado del equipo "${updatedEquipo.nombre}" cambiado a ${estado}.`,
+      equipo: updatedEquipo,
+    });
+  } catch (error) {
+    console.error("❌ Error al cambiar estado:", error);
+
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2025"
+    ) {
+      return res.status(404).json({ error: "❌ Equipo no encontrado." });
+    }
+
+    return res.status(500).json({ error: "❌ Error al cambiar estado." });
+  }
+});
+
 // 📌 Obtener todos los equipos
 router.get("/", async (req, res) => {
   try {

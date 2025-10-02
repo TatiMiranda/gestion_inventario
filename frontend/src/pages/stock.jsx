@@ -29,13 +29,39 @@ export default function Stock() {
   // 📌 Cambiar estado
   const handleEstadoChange = async (equipoId, nuevoEstado) => {
     try {
-      const res = await fetch(`http://localhost:4000/api/equipos/${equipoId}/estado`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ estado: nuevoEstado }),
-      });
+      console.log("🔄 Cambiando estado:", { equipoId, nuevoEstado });
+      
+      // Probar diferentes variaciones de la ruta
+      let res;
+      const urls = [
+        `http://localhost:4000/api/equipos/${equipoId}/estado`,
+        `http://localhost:4000/api/equipos/estado/${equipoId}`,
+        `http://localhost:4000/api/equipo/${equipoId}/estado`,
+      ];
+      
+      for (const url of urls) {
+        console.log("🔍 Probando URL:", url);
+        res = await fetch(url, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ estado: nuevoEstado }),
+        });
+        
+        if (res.ok) {
+          console.log("✅ URL correcta encontrada:", url);
+          break;
+        }
+      }
 
-      if (!res.ok) throw new Error("Error al actualizar estado");
+      if (!res.ok) {
+        const errorText = await res.text();
+        console.error("❌ Error del servidor:", errorText);
+        console.error("❌ Ninguna de estas URLs funcionó:", urls);
+        throw new Error(`Error al actualizar estado: ${res.status}. Verifica las rutas del backend.`);
+      }
+
+      const data = await res.json();
+      console.log("✅ Estado actualizado:", data);
 
       setStock((prev) =>
         prev.map((s) =>
@@ -44,9 +70,11 @@ export default function Stock() {
             : s
         )
       );
+      
+      console.log("✅ Estado cambiado a:", nuevoEstado);
     } catch (error) {
       console.error("❌ Error actualizando estado:", error);
-      alert("Error al actualizar el estado");
+      alert(`❌ Error al actualizar el estado: ${error.message}\n\n⚠️ Revisa la consola para más detalles.`);
     }
   };
 
@@ -59,19 +87,44 @@ export default function Stock() {
   // 📌 Guardar edición en la BD
   const handleGuardarEdicion = async (equipoId) => {
     try {
+      // Validar campos
+      if (!formEdit.nombre.trim() || !formEdit.codigo.trim()) {
+        alert("⚠️ Por favor completa todos los campos");
+        return;
+      }
+
       console.log("💾 Guardando edición", { equipoId, formEdit });
 
-      // ✅ Ruta correcta según tu backend: /api/equipos/equipo/:id
-      const res = await fetch(`http://localhost:4000/api/equipos/equipo/${equipoId}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formEdit),
-      });
+      // Probar diferentes variaciones de la ruta
+      const urls = [
+        `http://localhost:4000/api/equipos/equipo/${equipoId}`,
+        `http://localhost:4000/api/equipos/${equipoId}`,
+        `http://localhost:4000/api/equipo/${equipoId}`,
+      ];
+      
+      let res;
+      for (const url of urls) {
+        console.log("🔍 Probando URL:", url);
+        res = await fetch(url, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nombre: formEdit.nombre.trim(),
+            codigo: formEdit.codigo.trim()
+          }),
+        });
+        
+        if (res.ok) {
+          console.log("✅ URL correcta encontrada:", url);
+          break;
+        }
+      }
 
       if (!res.ok) {
         const errorText = await res.text();
         console.error("❌ Error del servidor:", errorText);
-        throw new Error(`Error HTTP: ${res.status}`);
+        console.error("❌ Ninguna de estas URLs funcionó:", urls);
+        throw new Error(`Error HTTP: ${res.status}. Verifica las rutas del backend.`);
       }
 
       const data = await res.json();
@@ -88,7 +141,12 @@ export default function Stock() {
           if (s.equipo.id === equipoId) {
             return {
               ...s,
-              equipo: data.equipo // El backend ya devuelve el equipo completo con categoría y stock
+              equipo: {
+                ...s.equipo,
+                nombre: formEdit.nombre.trim(),
+                codigo: formEdit.codigo.trim(),
+                ...(data.equipo || {})
+              }
             };
           }
           return s;
@@ -100,36 +158,59 @@ export default function Stock() {
       alert("✅ Equipo actualizado correctamente");
     } catch (error) {
       console.error("⚠️ Error al editar equipo:", error);
-      alert(`Error al guardar: ${error.message}`);
+      alert(`Error al guardar: ${error.message}\n\n⚠️ Revisa la consola para más detalles.`);
     }
   };
 
   // 📌 Eliminar equipo
   const handleEliminar = async (equipoId) => {
-    if (!window.confirm("¿Seguro que deseas eliminar este equipo?")) return;
+    if (!window.confirm("⚠️ ¿Seguro que deseas eliminar este equipo? Esta acción no se puede deshacer.")) return;
 
     try {
       console.log("🗑️ Eliminando equipo:", equipoId);
 
-      const res = await fetch(`http://localhost:4000/api/equipos/equipo/${equipoId}`, {
-        method: "DELETE",
-      });
+      // Probar diferentes variaciones de la ruta
+      const urls = [
+        `http://localhost:4000/api/equipos/equipo/${equipoId}`,
+        `http://localhost:4000/api/equipos/${equipoId}`,
+        `http://localhost:4000/api/equipo/${equipoId}`,
+      ];
+      
+      let res;
+      for (const url of urls) {
+        console.log("🔍 Probando URL:", url);
+        res = await fetch(url, {
+          method: "DELETE",
+          headers: { "Content-Type": "application/json" }
+        });
+        
+        if (res.ok) {
+          console.log("✅ URL correcta encontrada:", url);
+          break;
+        }
+      }
 
       if (!res.ok) {
         const errorText = await res.text();
         console.error("❌ Error del servidor:", errorText);
-        throw new Error(`Error HTTP: ${res.status}`);
+        console.error("❌ Ninguna de estas URLs funcionó:", urls);
+        throw new Error(`Error HTTP: ${res.status}. Verifica las rutas del backend.`);
       }
 
-      console.log("✅ Equipo eliminado del servidor");
+      const data = await res.json();
+      console.log("✅ Equipo eliminado del servidor:", data);
 
       // ✅ Filtrar correctamente por el ID del equipo
-      setStock((prev) => prev.filter((s) => s.equipo.id !== equipoId));
+      setStock((prev) => {
+        const nuevoStock = prev.filter((s) => s.equipo.id !== equipoId);
+        console.log("📦 Stock actualizado. Quedan", nuevoStock.length, "equipos");
+        return nuevoStock;
+      });
       
       alert("✅ Equipo eliminado correctamente");
     } catch (error) {
       console.error("⚠️ Error eliminando equipo:", error);
-      alert(`Error al eliminar: ${error.message}`);
+      alert(`Error al eliminar: ${error.message}\n\n⚠️ Revisa la consola para más detalles.`);
     }
   };
 
