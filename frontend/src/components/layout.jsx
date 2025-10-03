@@ -1,5 +1,5 @@
 import { NavLink, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   Laptop,
@@ -17,9 +17,26 @@ export default function Layout() {
   const navigate = useNavigate();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [currentUser, setCurrentUser] = useState({ 
+    nombre: "Usuario", 
+    email: "usuario@correo.com" 
+  });
+
+  // Obtener datos del usuario al cargar el componente
+  useEffect(() => {
+    const userData = localStorage.getItem("currentUser");
+    if (userData) {
+      const user = JSON.parse(userData);
+      setCurrentUser(user);
+    } else {
+      // Si no hay usuario en sesión, redirigir al login
+      navigate("/");
+    }
+  }, [navigate]);
 
   const handleLogout = () => {
-    // Limpiar sesión (localStorage, cookies, etc.)
+    // Limpiar sesión
+    localStorage.removeItem("currentUser");
     localStorage.removeItem("token");
     localStorage.removeItem("user");
     
@@ -27,7 +44,7 @@ export default function Layout() {
     setShowLogoutModal(false);
     
     // Redireccionar al login
-    navigate("/login");
+    navigate("/");
   };
 
   const menuItems = [
@@ -56,7 +73,7 @@ export default function Layout() {
               <>
                 <div className="w-25 h-25 flex items-center justify-center">
                   <img
-                    src="/logo_blanco.png" //  tu logo
+                    src="/logo_blanco.png"
                     alt="Logo"
                     className="object-contain w-full h-full"
                   />
@@ -69,7 +86,7 @@ export default function Layout() {
             ) : (
               <div className="w-35 h-35 flex items-center justify-center">
                 <img
-                  src="/logo_blanco.png" //  tu logo cuando está cerrado
+                  src="/logo_blanco.png"
                   alt="Logo"
                   className="object-contain w-full h-full" 
                 />
@@ -107,9 +124,9 @@ export default function Layout() {
                 <User size={16} />
               </div>
               <div className="flex-1 overflow-hidden">
-                <p className="text-sm font-medium truncate">Administrador</p>
+                <p className="text-sm font-medium truncate">{currentUser.nombre}</p>
                 <p className="text-xs text-blue-200 truncate">
-                  admin@correo.com
+                  {currentUser.email}
                 </p>
               </div>
             </div>
@@ -167,9 +184,9 @@ export default function Layout() {
                 </div>
                 <div className="text-right">
                   <p className="text-sm font-medium text-gray-700">
-                    Administrador
+                    {currentUser.nombre}
                   </p>
-                  <p className="text-xs text-gray-500">{location.pathname}</p>
+                  <p className="text-xs text-gray-500">{currentUser.email}</p>
                 </div>
               </div>
             </div>

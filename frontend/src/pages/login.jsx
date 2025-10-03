@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
-import { useNavigate } from "react-router-dom"; // 👈 Importa el hook
+import { useNavigate } from "react-router-dom";
 
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "" });
@@ -8,7 +8,7 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
-  const navigate = useNavigate(); // 👈 Inicializa navigate
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -21,25 +21,43 @@ export default function Login() {
     setError("");
 
     setTimeout(() => {
-      if (form.email && form.password) {
-        console.log("✅ Login exitoso:", form.email);
-        navigate("/dashboard"); // 👈 Redirige al dashboard
-      } else {
+      if (!form.email || !form.password) {
         setError("Por favor completa todos los campos");
+        setIsLoading(false);
+        return;
       }
+
+      // Obtener usuarios registrados
+      const users = JSON.parse(localStorage.getItem("users") || "[]");
+      
+      // Buscar usuario con email y contraseña correctos
+      const user = users.find(
+        u => u.email === form.email && u.password === form.password
+      );
+
+      if (user) {
+        console.log("✅ Login exitoso:", form.email);
+        // Guardar sesión actual con todos los datos del usuario
+        localStorage.setItem("currentUser", JSON.stringify({
+          nombre: user.nombre,
+          email: user.email
+        }));
+        navigate("/dashboard");
+      } else {
+        setError("Correo o contraseña incorrectos");
+      }
+      
       setIsLoading(false);
     }, 1000);
   };
 
   const handleGoogleLogin = () => {
-    // 👇 Puedes redirigir también al dashboard después de login con Google
     alert("Para usar Google Login:\n\n1. Ve a Google Cloud Console\n2. Crea un proyecto\n3. Activa Google+ API\n4. Crea credenciales OAuth 2.0\n5. Copia el Client ID\n6. Reemplázalo en main.jsx");
-    // navigate("/dashboard"); // 👈 Descomenta si quieres redirigir directo
   };
 
   const handleRegisterClick = () => {
     console.log("📝 Redirigiendo a registro...");
-    navigate("/register"); // 👈 Redirige a registro
+    navigate("/register");
   };
 
   return (
