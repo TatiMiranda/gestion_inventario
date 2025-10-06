@@ -152,46 +152,49 @@ export default function Layout() {
         }`}
       >
         {/* Header */}
-        <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30">
-          <div className="flex justify-between items-center px-6 py-4">
+       <header className="relative bg-white shadow-sm border-b border-gray-200 sticky top-0 z-30 group cursor-pointer overflow-hidden">
+          {/* Fondo degradado que aparece al hover */}
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-300 via-blue-500 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+          <div className="relative flex justify-between items-center px-6 py-4">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 rounded-lg transition-colors relative z-10 group-hover:bg-blue-600 group-hover:text-white"
               >
                 {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
               <div>
-                <h2 className="text-xl font-bold text-gray-800">
+                <h2 className="text-xl font-bold text-gray-800 group-hover:text-white transition-colors duration-300">
                   Panel de Control
                 </h2>
-                <p className="text-sm text-gray-500">
-                  {location.pathname === "/dashboard" &&
-                    "Vista general del sistema"}
+                <p className="text-sm text-gray-700 group-hover:text-gray-100 transition-colors duration-300">
+                  {location.pathname === "/dashboard" && "Vista general del sistema"}
                   {location.pathname === "/equipos" && "Gestión de equipos"}
-                  {location.pathname === "/sedes" &&
-                    "Administración de sedes"}
-                  {location.pathname === "/stock" &&
-                    "Control de inventario"}
+                  {location.pathname === "/sedes" && "Administración de sedes"}
+                  {location.pathname === "/stock" && "Control de inventario"}
                 </p>
               </div>
             </div>
 
             <div className="flex items-center gap-4">
-              <div className="hidden md:flex items-center gap-3 px-4 py-2 bg-gray-50 rounded-lg">
+              <div className="hidden md:flex items-center gap-3 px-4 py-2 bg-gray-50 rounded-lg relative z-10 group-hover:bg-blue-600 transition-colors duration-300">
                 <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                   <User size={16} className="text-white" />
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium text-gray-700">
+                  <p className="text-sm font-medium text-gray-700 group-hover:text-white transition-colors duration-300">
                     {currentUser.nombre}
                   </p>
-                  <p className="text-xs text-gray-500">{currentUser.email}</p>
+                  <p className="text-xs text-gray-500 group-hover:text-gray-200 transition-colors duration-300">
+                    {currentUser.email}
+                  </p>
                 </div>
               </div>
             </div>
           </div>
         </header>
+
 
         {/* Contenido dinámico */}
         <main className="flex-1 p-6 overflow-auto bg-gray-50">

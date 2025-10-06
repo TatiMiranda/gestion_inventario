@@ -68,6 +68,7 @@ export default function Login() {
           <div className="text-6xl font-bold text-blue-700 tracking-wider">
             ABAI
           </div>
+         
         </div>
 
         {/* Título */}
@@ -160,18 +161,7 @@ export default function Login() {
         </div>
 
         {/* Botón Google */}
-        <button
-          onClick={handleGoogleLogin}
-          disabled={isLoading}
-          className="w-full py-3 flex items-center justify-center border-2 border-gray-300 rounded-xl shadow-sm hover:bg-gray-50 hover:border-gray-400 active:scale-98 transition disabled:bg-gray-50 disabled:cursor-not-allowed mb-6"
-        >
-          <img
-            src="https://www.svgrepo.com/show/355037/google.svg"
-            alt="Google"
-            className="w-6 h-6 mr-3"
-          />
-          <span className="font-medium text-gray-700">Ingresar con Google</span>
-        </button>
+
 
         {/* Registro */}
         <p className="text-sm text-gray-500 text-center">
